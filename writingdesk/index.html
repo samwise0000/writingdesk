@@ -976,7 +976,7 @@ function renderTools(){
   if(tab==='spine'){
     t.innerHTML=`<input type="search" id="q" placeholder="Search" aria-label="Search" value="${att(query)}">
       ${['all','Present','Crossing','Myth','Empire','Guest'].map(f=>`<button class="btn${filter===f?' on':''}" data-f="${f}">${f==='all'?'All':f}</button>`).join('')}
-      <button class="btn" id="partsBtn">Parts</button>
+      <button class="btn" id="partsBtn">Parts</button>`;
     $('#partsBtn').onclick=()=>openParts();
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
