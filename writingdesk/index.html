@@ -65,6 +65,14 @@
   .legend span{display:flex;align-items:center;gap:7px}
   .dot{width:7px;height:7px;border-radius:50%}
 
+  .title-row{display:flex;align-items:center;gap:10px}
+  .title-row h1{margin-bottom:4px}
+  .icon-btn{background:none;border:0;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;padding:4px 2px;opacity:.82}
+  .icon-btn:hover{color:var(--ink);opacity:1}
+  .book-edit{font-size:17px;margin-top:2px}
+  .manuscript-tab{margin-left:auto;color:var(--lantern);font-weight:600;border-bottom-color:transparent}
+  .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern);border-bottom-color:var(--lantern)}
+
   /* ---- navigation ---- */
   nav.tabs{display:flex;gap:26px;margin:34px 0 0;border-bottom:1px solid var(--rule)}
   .tab{background:none;border:0;border-bottom:1px solid transparent;color:var(--soft);
@@ -137,8 +145,9 @@
 
   /* ---- focus: writing ---- */
   #focus{position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:var(--paper);
-    z-index:40;display:none;flex-direction:column;overscroll-behavior:contain}
-  #focus.on{display:flex}
+    z-index:40;display:flex;flex-direction:column;overscroll-behavior:contain;
+    opacity:0;visibility:hidden;pointer-events:none;transition:opacity .32s ease,visibility 0s linear .32s}
+  #focus.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .32s ease,visibility 0s linear 0s}
   .fbar{flex:0 0 auto;display:flex;gap:18px;align-items:baseline;padding:20px 28px;
     font-size:13px;color:var(--soft);flex-wrap:wrap}
   .fbar strong{color:var(--ink);font-size:15px;font-weight:400}
@@ -249,12 +258,10 @@
 <header>
   <div class="bookbar">
     <select id="bookSel" aria-label="Book"></select>
-    <button class="quiet" id="bookRename">Rename</button>
-    <button class="quiet" id="bookDel">Delete</button>
     <span style="margin-left:auto"></span>
-    <button class="quiet" id="themeBtn" aria-label="Switch between light and dark">Dark</button>
+    <button class="icon-btn" id="themeBtn" aria-label="Switch between light and dark" title="Switch theme">☾</button>
   </div>
-  <h1 id="bookTitle"></h1>
+  <div class="title-row"><h1 id="bookTitle"></h1><button class="icon-btn book-edit" id="bookEdit" aria-label="Edit book" title="Edit book">✎</button></div>
   <p class="sub">The whole book in order, what you've written, who's in it, and the rules you set yourself. Everything saves as you go.</p>
   <div class="waterline" id="waterline" aria-label="The whole book, one mark per section"></div>
   <div class="legend" id="legend"></div>
@@ -269,6 +276,7 @@
     <button class="tab" data-t="gloss">Glossary</button>
     <button class="tab" data-t="bible">Bible</button>
     <button class="tab" data-t="prog">Progress</button>
+    <button class="tab manuscript-tab" id="manuscriptTab" type="button">Manuscript</button>
   </nav>
 </header>
 
@@ -281,6 +289,8 @@
   <button class="quiet" id="storeTest">Check sync</button>
   <button class="quiet" id="saveStateBtn">Save state</button>
   <button class="quiet" id="loadStateBtn">Load state</button>
+  <button class="quiet" id="exp">Export</button>
+  <button class="quiet" id="imp">Import</button>
   <button class="quiet" id="storeLog">Log</button>
   <button class="quiet" id="storeKey">Password</button>
 </div>
@@ -291,7 +301,6 @@
   <div class="pane-top">
     <span id="mswc"></span>
     <span class="sp"></span>
-    <label><input type="checkbox" id="showTitles"> titles</label>
     <button class="quiet" id="msfocus">Focus</button>
     <button class="quiet" id="mscopy">Copy</button>
     <button class="quiet" id="msdl">Download</button>
@@ -304,8 +313,6 @@
   <div class="rbar">
     <span id="rmeta"></span>
     <span class="sp"></span>
-    <label style="display:inline-flex;gap:6px;align-items:center;font-style:normal">
-      <input type="checkbox" id="rtitles"> titles</label>
     <button class="quiet" id="rcopy">Copy</button>
     <button class="quiet" id="rdl">Download</button>
     <button class="quiet" id="rclose">Close</button>
@@ -352,6 +359,19 @@
   <div class="acts">
     <button class="btn primary" id="doImport">Import</button>
     <button class="btn" id="closeIn">Close</button>
+  </div>
+</dialog>
+
+<dialog id="dlgBookEdit">
+  <h2>Edit book</h2>
+  <p>Rename the current book or remove it from this workspace.</p>
+  <div class="state-save-row">
+    <div class="state-name"><label for="bookEditName">Book name</label><input id="bookEditName" maxlength="120"></div>
+  </div>
+  <div class="acts">
+    <button class="btn primary" id="doBookRename">Rename</button>
+    <button class="btn" id="doBookDelete">Delete book</button>
+    <button class="btn" id="closeBookEdit">Close</button>
   </div>
 </dialog>
 
@@ -915,22 +935,14 @@ function paintWaterline(){
 }
 function renderTools(){
   const t=$('#tools');
-  const common=`<button class="btn" id="ms">Manuscript</button>
-    <button class="btn" id="exp">Export</button>
-    <button class="btn" id="imp">Import</button>`;
+  const common=``;
   if(tab==='spine'){
-    t.innerHTML=`<input type="search" id="q" placeholder="Search the spine" value="${att(query)}">
+    t.innerHTML=`<input type="search" id="q" placeholder="Search" aria-label="Search" value="${att(query)}">
       ${['all','Present','Crossing','Myth','Empire','Guest'].map(f=>`<button class="btn${filter===f?' on':''}" data-f="${f}">${f==='all'?'All':f}</button>`).join('')}
-      <button class="btn" id="expand">Expand all</button>
       <button class="btn primary" id="focusNext">Write next</button>${common}`;
     $('#focusNext').onclick=()=>openFocus(nextUnwritten());
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
-    $('#expand').onclick=e=>{
-      const open=e.target.textContent==='Expand all';
-      document.querySelectorAll('.sec').forEach(s=>{s.classList.toggle('open',open);s.querySelector('.chev').textContent=open?'close':'open'});
-      e.target.textContent=open?'Collapse all':'Expand all'
-    };
   } else if(tab==='cast'){
     t.innerHTML=`<button class="btn primary" id="addCast">Add character</button>${common}`;
     $('#addCast').onclick=()=>{db.cast.unshift({name:'New character',group:'Secondary',world:'Myth',aka:'',role:'',note:''});save();render()};
@@ -953,9 +965,10 @@ function renderTools(){
   } else {
     t.innerHTML=common;
   }
-  $('#ms').onclick=()=>{ $('#pane').classList.toggle('open'); renderMs() };
   $('#exp').onclick=openExport;
   $('#imp').onclick=()=>$('#dlgIn').showModal();
+  const msBtn=document.getElementById('manuscriptTab');
+  if(msBtn) msBtn.onclick=()=>openManuscript();
 }
 
 /* ---------- spine ---------- */
@@ -1289,6 +1302,11 @@ function renderProg(){
   $('#tgt').onchange=e=>{db.meta.target=parseInt(e.target.value.replace(/\D/g,''))||130000;save();render()}
 }
 
+function openManuscript(){
+  renderMs();
+  $('#pane').classList.add('open');
+}
+
 /* ---------- manuscript ---------- */
 function msParts(withTitles){
   const out=[];let lastPart=null;
@@ -1305,7 +1323,7 @@ function renderMs(){
   if(el) el.textContent=w.toLocaleString()+' words, '+done+' of '+db.sections.length+' sections';
   const b=$('#msbody');
   if(b){
-    const withTitles=$('#showTitles').checked, items=msParts();
+    const withTitles=false, items=msParts();
     b.innerHTML = !items.length
       ? '<p class="empty">Nothing written yet. Open a section and write into the draft box; it appears here in book order.</p>'
       : items.map((it,k)=>
@@ -1317,7 +1335,7 @@ function renderMs(){
   if(document.getElementById('read').classList.contains('on')) renderRead();
 }
 function msText(withTitles){
-  if(withTitles===undefined){ const c=$('#showTitles'); withTitles = c ? c.checked : readTitles }
+  if(withTitles===undefined){ withTitles = false }
   return msParts().map((it,k)=>
     (it.newPart?`\n\n---- ${it.newPart} ----\n`:(k?'\n~\n':''))
     +(withTitles?`\n*${it.title}*\n\n`:'\n')+it.text
@@ -1392,7 +1410,7 @@ const THEMEKEY='writingdesk:theme';
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   const b=document.getElementById('themeBtn');
-  if(b) b.textContent = t==='dark' ? 'Light' : 'Dark';
+  if(b){ b.textContent = t==='dark' ? '☀' : '☾'; b.setAttribute('aria-label',t==='dark'?'Switch to light mode':'Switch to dark mode'); b.title=t==='dark'?'Switch to light mode':'Switch to dark mode'; }
   try{ localStorage.setItem(THEMEKEY,t) }catch(e){}
 }
 (function initTheme(){
@@ -1408,9 +1426,7 @@ document.addEventListener('click',e=>{
 });
 
 /* ---------- reading the manuscript ---------- */
-let readTitles=false;
 function openRead(){
-  readTitles = document.getElementById('rtitles').checked;
   renderRead();
   document.getElementById('read').classList.add('on');
   document.body.classList.add('locked');
@@ -1432,18 +1448,13 @@ function renderRead(){
   }
   b.innerHTML=items.map((it,k)=>
     (it.newPart?`<div class="partrule">${esc(it.newPart)}</div>`:(k?'<div class="brk">&#8226;&#8226;&#8226;</div>':''))
-    +(readTitles?`<p class="stitle">${esc(it.title)}</p>`:'')
+    +''
     +it.text.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join('')
   ).join('');
 }
 document.getElementById('rclose').onclick=closeRead;
-document.getElementById('msfocus').onclick=()=>{
-  document.getElementById('rtitles').checked=$('#showTitles').checked;
-  $('#pane').classList.remove('open');
-  openRead();
-};
+document.getElementById('msfocus').onclick=()=>{ $('#pane').classList.remove('open'); openRead(); };
 document.getElementById('msclose').onclick=()=>$('#pane').classList.remove('open');
-document.getElementById('showTitles').onchange=renderMs;
 document.getElementById('mscopy').onclick=async()=>{
   try{ await navigator.clipboard.writeText(msText()); say('Manuscript copied') }catch(e){ say('Copy failed') }
 };
@@ -1452,7 +1463,6 @@ document.getElementById('msdl').onclick=()=>{
   a.href=URL.createObjectURL(new Blob([msText()],{type:'text/markdown'}));
   a.download=(ws.books[ws.current].title||'manuscript').replace(/[^\w -]/g,'')+'.md';a.click()
 };
-document.getElementById('rtitles').onchange=e=>{readTitles=e.target.checked;renderRead()};
 document.getElementById('rcopy').onclick=async()=>{
   try{ await navigator.clipboard.writeText(msText()); say('Manuscript copied') }catch(e){ say('Copy failed') }
 };
@@ -1470,16 +1480,28 @@ $('#bookSel').onchange=e=>{
     ws.books.push(blankBook(t.trim()));switchBook(ws.books.length-1);say('Created '+t.trim())
   } else switchBook(parseInt(e.target.value))
 };
-$('#bookRename').onclick=()=>{
-  const t=prompt('Rename this book',ws.books[ws.current].title);
-  if(t&&t.trim()){ws.books[ws.current].title=t.trim();save();render()}
+$('#bookEdit').onclick=()=>{
+  const b=ws.books[ws.current];
+  $('#bookEditName').value=b.title||'';
+  $('#dlgBookEdit').showModal();
+  setTimeout(()=>$('#bookEditName').focus(),0);
 };
-$('#bookDel').onclick=()=>{
+$('#closeBookEdit').onclick=()=>$('#dlgBookEdit').close();
+$('#doBookRename').onclick=()=>{
+  const t=$('#bookEditName').value.trim();
+  if(!t)return;
+  ws.books[ws.current].title=t;
+  save();render();$('#dlgBookEdit').close();say('Renamed');
+};
+$('#doBookDelete').onclick=()=>{
   if(ws.books.length<2)return say('This is the only book — nothing to switch to.');
   const b=ws.books[ws.current];
   const w=(b.data.sections||[]).reduce((n,x)=>n+words(x.text),0);
   if(!confirm(`Delete "${b.title}"? It has ${b.data.sections.length} sections and ${w.toLocaleString()} words written. This cannot be undone.`))return;
-  ws.books.splice(ws.current,1);switchBook(0);say('Deleted')
+  ws.books.splice(ws.current,1);
+  $('#dlgBookEdit').close();
+  switchBook(Math.min(ws.current,ws.books.length-1));
+  say('Deleted');
 };
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;query='';render()});
 document.addEventListener('keydown',e=>{
