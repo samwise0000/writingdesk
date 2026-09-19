@@ -69,7 +69,7 @@
   .title-row h1{margin-bottom:4px}
   .icon-btn{background:none;border:0;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;padding:4px 2px;opacity:.82}
   .icon-btn:hover{color:var(--ink);opacity:1}
-  .book-edit{font-size:17px;margin-top:2px}
+  .book-edit{font-size:17px;margin-top:-4px}
   .manuscript-tab{margin-left:auto;color:var(--lantern);font-weight:600;border-bottom-color:transparent}
   .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern);border-bottom-color:var(--lantern)}
 
@@ -977,8 +977,6 @@ function renderTools(){
     t.innerHTML=`<input type="search" id="q" placeholder="Search" aria-label="Search" value="${att(query)}">
       ${['all','Present','Crossing','Myth','Empire','Guest'].map(f=>`<button class="btn${filter===f?' on':''}" data-f="${f}">${f==='all'?'All':f}</button>`).join('')}
       <button class="btn" id="partsBtn">Parts</button>
-      <button class="btn primary" id="focusNext">Write next</button>${common}`;
-    $('#focusNext').onclick=()=>openFocus(nextUnwritten());
     $('#partsBtn').onclick=()=>openParts();
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
