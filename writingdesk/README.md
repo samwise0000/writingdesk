@@ -1,9 +1,8 @@
-# Writing Desk — updated UI + saved states
+Writing Desk — parts manager update
 
-Vercel project structure:
+Files:
+- index.html — UI and book-parts management
+- api/data.js — Vercel Blob sync API
+- package.json — @vercel/blob dependency
 
-- `index.html` — Writing Desk UI
-- `api/data.js` — private Blob sync + named saved states
-- `package.json` — Vercel Blob dependency
-
-Deploy with the project root set to this folder. Keep the existing Vercel Blob store and `DESK_KEY` environment variable.
+The Parts button is now visible in the Spine toolbar. It opens Book parts, where you can add, rename, and delete parts. Parts are stored separately from sections so an empty part can exist. Renaming a part updates all sections assigned to it. Deleting a part with sections requires choosing another part to receive those sections.
