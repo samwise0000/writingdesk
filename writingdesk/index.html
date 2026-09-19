@@ -375,6 +375,16 @@
   </div>
 </dialog>
 
+<dialog id="dlgParts">
+  <h2>Edit parts</h2>
+  <p>Rename, add, or remove the major divisions of the book. Removing a part does not delete its sections; you will choose where those sections move.</p>
+  <div id="partsList" class="state-list"></div>
+  <div class="acts">
+    <button class="btn primary" id="addPart">Add part</button>
+    <button class="btn" id="closeParts">Close</button>
+  </div>
+</dialog>
+
 <dialog id="dlgStates">
   <h2>Saved states</h2>
   <p class="state-help">Save a named snapshot of the entire workspace. Snapshots live on the server and can be loaded from any device using the same sync password.</p>
@@ -909,6 +919,7 @@ async function boot(){
 
 /* ---------- chrome ---------- */
 function render(){
+  getParts();
   renderBooks();pickTiers();
   paintWaterline();
   $('#legend').innerHTML=Object.entries(TIERS).map(([k,v])=>
@@ -933,14 +944,57 @@ function paintWaterline(){
     wl.appendChild(b)
   })
 }
+function getParts(){
+  const fallback=[...new Set((db.sections||[]).map(s=>s.part).filter(Boolean))];
+  if(!db.meta)db.meta={};
+  if(!Array.isArray(db.meta.parts)) db.meta.parts=fallback.length?fallback:['I'];
+  // Keep any section part that came from an older backup, even if it is not in meta.parts.
+  (db.sections||[]).forEach(s=>{if(s.part&&!db.meta.parts.includes(s.part))db.meta.parts.push(s.part)});
+  return db.meta.parts;
+}
+function saveParts(){ if(!db.meta)db.meta={}; save(); render(); }
+function renderPartsDialog(){
+  const list=$('#partsList'); if(!list)return;
+  const parts=getParts();
+  list.innerHTML=parts.map((part,i)=>{
+    const count=db.sections.filter(s=>s.part===part).length;
+    const opts=parts.filter(p=>p!==part).map(p=>`<option value="${att(p)}">${esc(p)}</option>`).join('');
+    return `<div class="part-edit-row" data-part-index="${i}">
+      <div class="state-name"><label>Part ${i+1}</label><input class="part-name" value="${att(part)}" maxlength="100"></div>
+      <span class="part-count">${count} section${count===1?'':'s'}</span>
+      <button class="btn part-rename" type="button">Rename</button>
+      <button class="btn" data-remove-part type="button">Remove</button>
+      ${count?`<select class="part-move" aria-label="Move sections before removing">${opts}</select>`:''}
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.part-rename').forEach(btn=>btn.onclick=()=>{
+    const row=btn.closest('[data-part-index]'),i=+row.dataset.partIndex,input=row.querySelector('.part-name'),next=input.value.trim();
+    if(!next)return say('Part name cannot be empty');
+    const parts=getParts(),old=parts[i];
+    if(next!==old && parts.includes(next))return say('A part with that name already exists');
+    parts[i]=next; db.sections.forEach(s=>{if(s.part===old)s.part=next}); save(); render(); renderPartsDialog(); say('Part renamed');
+  });
+  list.querySelectorAll('[data-remove-part]').forEach(btn=>btn.onclick=()=>{
+    const row=btn.closest('[data-part-index]'),i=+row.dataset.partIndex,parts=getParts(),old=parts[i],count=db.sections.filter(s=>s.part===old).length;
+    if(parts.length<=1)return say('Keep at least one part');
+    let target='';
+    if(count){ target=row.querySelector('.part-move')?.value||''; if(!target)return say('Choose where its sections should move first'); }
+    if(!confirm(count?`Remove "${old}" and move its ${count} section${count===1?'':'s'} to "${target}"?`:`Remove "${old}"?`))return;
+    if(count)db.sections.forEach(s=>{if(s.part===old)s.part=target});
+    parts.splice(i,1); save(); render(); renderPartsDialog(); say('Part removed');
+  });
+}
+
 function renderTools(){
   const t=$('#tools');
   const common=``;
   if(tab==='spine'){
     t.innerHTML=`<input type="search" id="q" placeholder="Search" aria-label="Search" value="${att(query)}">
       ${['all','Present','Crossing','Myth','Empire','Guest'].map(f=>`<button class="btn${filter===f?' on':''}" data-f="${f}">${f==='all'?'All':f}</button>`).join('')}
+      <button class="btn" id="editParts">Parts</button>
       <button class="btn primary" id="focusNext">Write next</button>${common}`;
     $('#focusNext').onclick=()=>openFocus(nextUnwritten());
+    $('#editParts').onclick=()=>{getParts();renderPartsDialog();$('#dlgParts').showModal()};
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
   } else if(tab==='cast'){
@@ -978,17 +1032,25 @@ function visible(s){
   return (s.title+' '+s.synopsis+' '+s.setting+' '+s.part+' '+(s.text||'')).toLowerCase().includes(query)
 }
 function renderSpine(){
-  const v=$('#view');v.innerHTML='';let lastPart=null;
-  db.sections.forEach((s,i)=>{
-    if(!visible(s))return;
-    if(s.part!==lastPart){
-      lastPart=s.part;
-      const inPart=db.sections.filter(x=>x.part===s.part);
-      const done=inPart.filter(x=>(x.status||'outline')!=='outline').length;
+  const v=$('#view');v.innerHTML='';
+  const parts=getParts();
+  const visibleSections=new Set();
+  db.sections.forEach((s,i)=>{if(visible(s))visibleSections.add(i)});
+  parts.forEach(part=>{
+    const inPart=db.sections.filter((s,i)=>s.part===part && visibleSections.has(i));
+    const totalInPart=db.sections.filter(s=>s.part===part);
+    if(!inPart.length){
+      if(query && totalInPart.length) return;
       const h=document.createElement('div');h.className='part';
-      h.innerHTML=`<b>${esc(s.part)}</b><s>${done} of ${inPart.length} drafted</s>`;
-      v.appendChild(h)
+      h.innerHTML=`<b>${esc(part)}</b><s>0 of ${totalInPart.length} drafted</s>`;
+      v.appendChild(h); return;
     }
+    const done=totalInPart.filter(x=>(x.status||'outline')!=='outline').length;
+    const h=document.createElement('div');h.className='part';
+    h.innerHTML=`<b>${esc(part)}</b><s>${done} of ${totalInPart.length} drafted</s>`;
+    v.appendChild(h);
+    inPart.forEach(s=>{
+      const i=db.sections.indexOf(s);
     const d=document.createElement('section');d.className='sec';d.id='s'+i;
     d.innerHTML=`
       <button class="head" aria-expanded="false">
@@ -1048,7 +1110,8 @@ function renderSpine(){
       if(a==='focus')return openFocus(i);
       save();render()
     });
-    v.appendChild(d)
+      v.appendChild(d)
+    });
   });
   if(!v.children.length){
     v.innerHTML=db.sections.length
@@ -1057,7 +1120,7 @@ function renderSpine(){
          <p style="max-width:60ch;color:var(--muted);font-size:15.5px">No sections yet. Add the first one and the spine, the waterline and the manuscript all start from it.</p>
          <div class="acts"><button class="btn primary" id="firstSec">Add the first section</button></div>`;
     const f=document.getElementById('firstSec');
-    if(f)f.onclick=()=>{db.sections.push({part:'I',tier:'Present',status:'outline',tense:'',setting:'',title:'Untitled section',synopsis:'',text:'',scratch:''});save();render()}
+    if(f)f.onclick=()=>{db.sections.push({part:getParts()[0]||'I',tier:'Present',status:'outline',tense:'',setting:'',title:'Untitled section',synopsis:'',text:'',scratch:''});save();render()}
   }
 }
 
@@ -1480,6 +1543,14 @@ $('#bookSel').onchange=e=>{
     ws.books.push(blankBook(t.trim()));switchBook(ws.books.length-1);say('Created '+t.trim())
   } else switchBook(parseInt(e.target.value))
 };
+$('#closeParts').onclick=()=>$('#dlgParts').close();
+$('#addPart').onclick=()=>{
+  const parts=getParts();
+  let n=parts.length+1, name='Part '+n;
+  while(parts.includes(name)){n++;name='Part '+n}
+  parts.push(name); save(); render(); renderPartsDialog(); say('Part added');
+};
+
 $('#bookEdit').onclick=()=>{
   const b=ws.books[ws.current];
   $('#bookEditName').value=b.title||'';
