@@ -217,6 +217,19 @@
   dialog p{font-size:14.5px;color:var(--soft);margin:0 0 16px;max-width:60ch}
   dialog textarea{min-height:280px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.6}
 
+  .state-help{font-size:14.5px;color:var(--soft);margin:0 0 14px;max-width:60ch}
+  .state-save-row{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:18px 0 24px}
+  .state-save-row .state-name{flex:1;min-width:220px}
+  .state-save-row input{width:100%;background:none;border:0;border-bottom:1px solid var(--rule);padding:6px 0;font-size:16px}
+  .state-save-row input:focus{outline:none;border-bottom-color:var(--ink)}
+  .state-list{border-top:1px solid var(--rule);max-height:420px;overflow:auto}
+  .state-row{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .state-info{flex:1;min-width:0}
+  .state-name-display{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .state-meta{font-size:12.5px;color:var(--soft);margin-top:2px}
+  .state-actions{display:flex;gap:14px;flex:0 0 auto}
+  .state-empty{padding:20px 0;color:var(--soft);font-style:italic}
+  .state-error{padding:12px 0;color:#E9A0A0;font-size:13px}
   #diag{display:none;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--soft);
     border-top:1px solid var(--rule);padding:14px 0 0;margin:14px 0 0;max-height:220px;
     overflow:auto;white-space:pre-wrap}
@@ -266,6 +279,8 @@
 <div class="footline">
   <span id="storeState">saving</span>
   <button class="quiet" id="storeTest">Check sync</button>
+  <button class="quiet" id="saveStateBtn">Save state</button>
+  <button class="quiet" id="loadStateBtn">Load state</button>
   <button class="quiet" id="storeLog">Log</button>
   <button class="quiet" id="storeKey">Password</button>
 </div>
@@ -337,6 +352,19 @@
   <div class="acts">
     <button class="btn primary" id="doImport">Import</button>
     <button class="btn" id="closeIn">Close</button>
+  </div>
+</dialog>
+
+<dialog id="dlgStates">
+  <h2>Saved states</h2>
+  <p class="state-help">Save a named snapshot of the entire workspace. Snapshots live on the server and can be loaded from any device using the same sync password.</p>
+  <div class="state-save-row">
+    <div class="state-name"><label for="stateName">Name</label><input id="stateName" maxlength="80" placeholder="e.g. Before major rewrite"></div>
+    <button class="btn primary" id="doSaveState">Save current state</button>
+  </div>
+  <div id="stateList" class="state-list"><div class="state-empty">Loading saved states…</div></div>
+  <div class="acts">
+    <button class="btn" id="closeStates">Close</button>
   </div>
 </dialog>
 
@@ -600,10 +628,10 @@ function getKey(){
 }
 function forgetKey(){ deskKey=null; try{localStorage.removeItem(KEYLS)}catch(e){} }
 
-async function api(method, body){
+async function api(method, body, path='/api/data'){
   const k=getKey();
   if(!k) throw new Error('no key');
-  const r=await fetch('/api/data',{
+  const r=await fetch(path,{
     method,
     headers:{'content-type':'application/json','x-desk-key':k},
     body: body!==undefined ? JSON.stringify(body) : undefined
@@ -647,6 +675,96 @@ async function dbSave(){
   }catch(e){ diag('save FAILED — '+(e&&e.message||e)); return false }
   finally{ writing=false; if(pending){ pending=false; dbSave() } }
 }
+async function snapshotList(){
+  if(!DB) throw new Error('server sync is not available');
+  const out=await api('GET',undefined,'/api/data?snapshots=1');
+  return Array.isArray(out.snapshots)?out.snapshots:[];
+}
+async function snapshotSave(name){
+  if(!DB) throw new Error('server sync is not available');
+  flush();
+  ws.books[ws.current].data=db;
+  const workspace=structuredClone({books:ws.books,current:ws.current});
+  const clean=String(name||'').trim().slice(0,80);
+  if(!clean) throw new Error('give the snapshot a name');
+  return await api('POST',{action:'snapshot_save',name:clean,workspace});
+}
+async function snapshotLoad(id){
+  if(!DB) throw new Error('server sync is not available');
+  return await api('GET',undefined,'/api/data?snapshot='+encodeURIComponent(id));
+}
+async function snapshotDelete(id){
+  if(!DB) throw new Error('server sync is not available');
+  return await api('POST',{action:'snapshot_delete',id});
+}
+function fmtStateDate(v){
+  try{return new Date(v).toLocaleString([], {dateStyle:'medium',timeStyle:'short'})}catch(e){return String(v||'')}
+}
+async function renderStates(){
+  const list=$('#stateList');
+  if(!list) return;
+  list.innerHTML='<div class="state-empty">Loading saved states…</div>';
+  try{
+    if(!DB){list.innerHTML='<div class="state-error">Server sync is not available. Saved states require Vercel Blob sync.</div>';return}
+    const states=await snapshotList();
+    if(!states.length){list.innerHTML='<div class="state-empty">No saved states yet.</div>';return}
+    list.innerHTML=states.map(st=>`<div class="state-row" data-state-id="${att(st.id)}">
+      <div class="state-info"><div class="state-name-display">${esc(st.name||'Untitled state')}</div><div class="state-meta">${fmtStateDate(st.createdAt)}${st.size?` · ${Math.max(1,Math.round(st.size/1024))} KB`:''}</div></div>
+      <div class="state-actions"><button class="quiet" data-state-load="${att(st.id)}">Load</button><button class="quiet" data-state-delete="${att(st.id)}">Delete</button></div>
+    </div>`).join('');
+  }catch(e){
+    list.innerHTML='<div class="state-error">Could not load saved states — '+esc(e&&e.message||e)+'</div>';
+  }
+}
+function openStates(){
+  $('#dlgStates').showModal();
+  renderStates();
+}
+$('#closeStates').onclick=()=>$('#dlgStates').close();
+$('#saveStateBtn').onclick=()=>{openStates();setTimeout(()=>$('#stateName').focus(),0)};
+$('#loadStateBtn').onclick=openStates;
+$('#doSaveState').onclick=async()=>{
+  const el=$('#stateName');
+  const name=el.value.trim();
+  if(!name){el.focus();say('Give the snapshot a name');return}
+  const btn=$('#doSaveState');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const out=await snapshotSave(name);
+    el.value='';
+    say('State saved');
+    await renderStates();
+  }catch(e){say('State save failed — '+(e&&e.message||e))}
+  finally{btn.disabled=false;btn.textContent='Save current state'}
+};
+$('#stateList').addEventListener('click',async e=>{
+  const load=e.target.closest('[data-state-load]');
+  const del=e.target.closest('[data-state-delete]');
+  if(load){
+    const id=load.dataset.stateLoad;
+    if(!confirm('Load this saved state? Your current workspace will be replaced, but this saved state will remain in the list.')) return;
+    load.disabled=true;
+    try{
+      const out=await snapshotLoad(id);
+      if(!out || !out.workspace || !Array.isArray(out.workspace.books)) throw new Error('invalid saved state');
+      adopt(out.workspace);
+      ws.books[ws.current].data=db;
+      lsSet(JSON.stringify(ws));
+      await dbSave();
+      dirty=true;
+      $('#dlgStates').close();
+      say('State loaded');
+    }catch(e){say('State load failed — '+(e&&e.message||e))}
+    finally{load.disabled=false}
+  }
+  if(del){
+    const id=del.dataset.stateDelete;
+    if(!confirm('Delete this saved state permanently?')) return;
+    del.disabled=true;
+    try{await snapshotDelete(id);say('State deleted');await renderStates()}
+    catch(e){say('State delete failed — '+(e&&e.message||e));del.disabled=false}
+  }
+});
+
 function stamp(){
   const el=document.getElementById('storeState');
   if(el){
