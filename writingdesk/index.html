@@ -96,11 +96,12 @@
   .rail-item{display:flex;gap:9px;align-items:baseline;width:100%;border:0;background:none;color:var(--soft);text-align:left;padding:7px 0;cursor:pointer;font:inherit}
   .rail-item:hover{color:var(--ink)}
   .rail-item.on{color:var(--ink)}
-  .rail-dot{flex:0 0 5px;width:5px;height:5px;border-radius:50%;border:1px solid currentColor;margin-top:6px}
-  .rail-item.on .rail-dot{background:var(--lantern);border-color:var(--lantern)}
+  .rail-dot{flex:0 0 10px;width:10px;height:10px;border-radius:50%;border:2px solid currentColor;margin-top:4px;background:currentColor;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 16%,transparent)}
+  .rail-item:hover .rail-dot{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 18%,transparent)}
+  .rail-item.on .rail-dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--lantern) 18%,transparent)}
   .rail-num{font-size:11px;color:var(--soft);flex:0 0 22px}
   .rail-title{font-size:14.5px;line-height:1.3;min-width:0}
-  .mainpane{min-width:0;padding:0 46px 120px}
+  .mainpane{min-width:0;padding:0 46px 120px 6px}
   .tools{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:0;position:sticky;top:0;
     background:var(--paper);padding:18px 0;z-index:5;border-bottom:1px solid var(--rule)}
   .btn{background:none;color:var(--soft);border:0;border-bottom:1px solid transparent;
@@ -114,8 +115,19 @@
   input[type=search]:focus{outline:none;border-bottom-color:var(--ink)}
   .status{font-size:13px;color:var(--soft);min-height:18px;margin:2px 0 0}
 
-  .section-stage{max-width:980px;margin:0 auto;padding:42px 0 80px}
+  .section-stage{width:100%;max-width:none;margin:0;padding:42px 0 80px}
+  .stage-head{display:flex;align-items:flex-start;gap:28px;margin-bottom:14px}
+  .stage-head-main{min-width:0;flex:1}
   .stage-kicker{font-size:13px;color:var(--soft);font-style:italic;margin-bottom:12px}
+  .stage-title-input{display:block;width:100%;background:none;border:0;padding:0;font-family:var(--face);font-size:38px;line-height:1.12;font-weight:400;letter-spacing:-.015em;color:inherit;margin:0;outline:none}
+  .stage-title-input:focus{border-bottom:1px solid var(--rule)}
+  .stage-focus{flex:0 0 auto;margin-top:27px;padding:7px 12px;border:1px solid var(--lantern);border-radius:2px;color:var(--lantern);font-size:14px;background:none;cursor:pointer}
+  .stage-focus:hover{background:color-mix(in srgb,var(--lantern) 8%,transparent)}
+  .stage-info-toggle{margin:0 0 18px;padding:0;background:none;border:0;color:var(--soft);font-size:13px;cursor:pointer;border-bottom:1px solid transparent}
+  .stage-info-toggle:hover{color:var(--ink);border-bottom-color:var(--rule)}
+  .stage-info{display:block}
+  .section-stage.info-collapsed .stage-info{display:none}
+  .section-stage.info-collapsed .stage-info-toggle{margin-bottom:28px}
   .stage-title{font-size:38px;line-height:1.12;font-weight:400;letter-spacing:-.015em;margin:0 0 12px}
   .stage-syn{font-size:18px;line-height:1.65;color:color-mix(in srgb,var(--ink) 78%,var(--paper));max-width:72ch;white-space:pre-wrap;margin:0 0 34px}
   .stage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-bottom:34px}
@@ -127,7 +139,11 @@
   .stage-syn-edit:focus{outline:none;border-bottom-color:var(--ink)}
   .stage-draft{margin-top:38px;padding-top:24px;border-top:1px solid var(--rule)}
   .stage-draft label{font-size:13px;color:var(--soft);font-style:italic}
-  .stage-draft textarea{min-height:58vh;font-size:20px;line-height:1.8;border:0;border-radius:0;background:transparent;padding:16px 0;resize:vertical}
+  .stage-draft textarea{height:62vh;min-height:360px;max-height:72vh;font-size:20px;line-height:1.8;border:0;border-radius:0;background:transparent;padding:16px 8px 16px 0;resize:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
+  .stage-draft textarea::-webkit-scrollbar{width:5px}
+  .stage-draft textarea::-webkit-scrollbar-track{background:transparent}
+  .stage-draft textarea::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--soft) 55%,transparent);border-radius:8px}
+  .stage-draft textarea::-webkit-scrollbar-thumb:hover{background:var(--soft)}
   .stage-actions{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
   #spineList{padding-bottom:30px}
   @media (max-width:1000px){.workspace{grid-template-columns:250px minmax(0,1fr)}.mainpane{padding-left:30px;padding-right:30px}.bookbar{padding:0 22px}}
@@ -665,7 +681,7 @@ const BOOK2={"title": "A Second Summer — The Hollowing, book one", "data": {"s
 
 let ws={books:[],current:0};
 let selectedIdx=0;
-let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false;
+let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -1090,25 +1106,31 @@ function renderSpine(){
   }
   if(selectedIdx<0||selectedIdx>=db.sections.length||!visible(db.sections[selectedIdx])) selectedIdx=visibleSections[0]?.i??0;
   const i=selectedIdx,s=db.sections[i];
-  v.innerHTML=`<div class="section-stage">
-    <div class="stage-kicker">${esc(s.part||'Unassigned')} · section ${i+1} of ${db.sections.length}</div>
-    <h2 class="stage-title">${esc(s.title||'Untitled section')}</h2>
-    <div class="stage-syn"><label style="display:block;font-size:12px;color:var(--soft);font-style:italic;margin-bottom:7px">Synopsis</label><textarea class="stage-syn-edit" data-k="synopsis">${esc(s.synopsis||'')}</textarea></div>
-    <div class="stage-grid">
-      <div class="stage-field"><label>Tier</label><select data-k="tier"><option${s.tier==='Present'?' selected':''}>Present</option><option${s.tier==='Crossing'?' selected':''}>Crossing</option><option${s.tier==='Myth'?' selected':''}>Myth</option><option${s.tier==='Empire'?' selected':''}>Empire</option><option${s.tier==='Guest'?' selected':''}>Guest</option></select></div>
-      <div class="stage-field"><label>Status</label><select data-k="status">${STATUS.map(t=>`<option${t===(s.status||'outline')?' selected':''}>${t}</option>`).join('')}</select></div>
-      <div class="stage-field"><label>Part</label><select data-k="part">${(db.parts||partNames(db.sections)).map(p=>`<option${p===s.part?' selected':''}>${esc(p)}</option>`).join('')}</select></div>
+  v.innerHTML=`<div class="section-stage${infoCollapsed?' info-collapsed':''}">
+    <div class="stage-head">
+      <div class="stage-head-main">
+        <div class="stage-kicker">${esc(s.part||'Unassigned')} · section ${i+1} of ${db.sections.length}</div>
+        <input class="stage-title-input" data-k="title" value="${att(s.title||'Untitled section')}" aria-label="Section title">
+      </div>
+      <button class="stage-focus" type="button" data-a="focus">⛶ Focus</button>
     </div>
-    <div class="stage-grid">
-      <div class="stage-field"><label>Title</label><input data-k="title" value="${att(s.title||'')}"></div>
-      <div class="stage-field"><label>Tense and voice</label><input data-k="tense" value="${att(s.tense||'')}"></div>
-      <div class="stage-field"><label>Setting</label><input data-k="setting" value="${att(s.setting||'')}"></div>
+    <button class="stage-info-toggle" type="button" id="stageInfoToggle">${infoCollapsed?'Show section info':'Hide section info'}</button>
+    <div class="stage-info">
+      <div class="stage-syn"><label style="display:block;font-size:12px;color:var(--soft);font-style:italic;margin-bottom:7px">Synopsis</label><textarea class="stage-syn-edit" data-k="synopsis">${esc(s.synopsis||'')}</textarea></div>
+      <div class="stage-grid">
+        <div class="stage-field"><label>Tier</label><select data-k="tier"><option${s.tier==='Present'?' selected':''}>Present</option><option${s.tier==='Crossing'?' selected':''}>Crossing</option><option${s.tier==='Myth'?' selected':''}>Myth</option><option${s.tier==='Empire'?' selected':''}>Empire</option><option${s.tier==='Guest'?' selected':''}>Guest</option></select></div>
+        <div class="stage-field"><label>Status</label><select data-k="status">${STATUS.map(t=>`<option${t===(s.status||'outline')?' selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="stage-field"><label>Part</label><select data-k="part">${(db.parts||partNames(db.sections)).map(p=>`<option${p===s.part?' selected':''}>${esc(p)}</option>`).join('')}</select></div>
+      </div>
+      <div class="stage-grid">
+        <div class="stage-field"><label>Tense and voice</label><input data-k="tense" value="${att(s.tense||'')}"></div>
+        <div class="stage-field"><label>Setting</label><input data-k="setting" value="${att(s.setting||'')}"></div>
+      </div>
     </div>
     <div class="stage-draft">
       <label>Draft text · ${words(s.text)} words</label>
       <textarea data-k="text" data-live="1" placeholder="Nothing written yet.">${esc(s.text||'')}</textarea>
       <div class="stage-actions">
-        <button class="btn primary" data-a="focus">Write this</button>
         <button class="btn" data-a="up">Move up</button>
         <button class="btn" data-a="down">Move down</button>
         <button class="btn" data-a="add">Add section below</button>
@@ -1116,10 +1138,15 @@ function renderSpine(){
       </div>
     </div>
   </div>`;
+  const infoToggle=document.getElementById('stageInfoToggle');
+  if(infoToggle)infoToggle.onclick=()=>{infoCollapsed=!infoCollapsed;renderSpine()};
   v.querySelectorAll('[data-k]').forEach(f=>{
     if(f.dataset.live){
       f.oninput=()=>{dirty=true;s.text=f.value;const lab=v.querySelector('.stage-draft label');if(lab)lab.textContent='Draft text · '+words(f.value)+' words';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();renderMs();paintWaterline()},1200)};
       f.onblur=()=>{clearTimeout(saveTimer);s.text=f.value;save();renderMs();paintWaterline()}
+    }else if(f.dataset.k==='title'){
+      f.oninput=()=>{dirty=true;s.title=f.value;clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();renderSpine();renderBooks();paintWaterline()},700)};
+      f.onblur=()=>{clearTimeout(saveTimer);s.title=f.value.trim()||'Untitled section';save();renderSpine();renderBooks();paintWaterline()}
     }else f.onchange=()=>{s[f.dataset.k]=f.value;save();render()}
   });
   v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
