@@ -150,7 +150,7 @@
   .stage-field .value{font-size:15px;border-bottom:1px solid var(--rule);padding:4px 0;min-height:30px}
   .stage-field input,.stage-field select{width:100%;background:none;border:0;border-bottom:1px solid var(--rule);padding:4px 0;font-size:15px}
   .stage-field input:focus,.stage-field select:focus{outline:none;border-bottom-color:var(--ink)}
-  .stage-syn-edit{width:100%;min-height:240px;background:none;border:0;border-bottom:1px solid var(--rule);padding:0 0 10px;font-size:18px;line-height:1.65;resize:vertical;color:inherit}
+  .stage-syn-edit{width:100%;min-height:0;height:auto;overflow:hidden;background:none;border:0;border-bottom:1px solid var(--rule);padding:0 0 10px;font-size:18px;line-height:1.65;resize:none;color:inherit;box-sizing:border-box}
   .stage-syn-edit:focus{outline:none;border-bottom-color:var(--ink)}
   .stage-draft{margin-top:38px;padding-top:24px;border-top:1px solid var(--rule)}
   .stage-draft label{font-size:13px;color:var(--soft);font-style:italic}
@@ -1244,6 +1244,9 @@ function renderSpine(){
       f.onblur=()=>{clearTimeout(saveTimer);s.title=f.value.trim()||'Untitled section';save();renderSpine();renderBooks();paintWaterline()}
     }else f.onchange=()=>{s[f.dataset.k]=f.value;save();render()}
   });
+  const synEdit=v.querySelector('.stage-syn-edit');
+  const resizeSynopsis=()=>{if(!synEdit)return;synEdit.style.height='auto';synEdit.style.height=synEdit.scrollHeight+'px'};
+  if(synEdit){resizeSynopsis();synEdit.addEventListener('input',()=>{resizeSynopsis();dirty=true;s.synopsis=synEdit.value;clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();paintWaterline()},700)});synEdit.addEventListener('blur',()=>{clearTimeout(saveTimer);s.synopsis=synEdit.value;save()})}
   bindFormatToolbar(document.getElementById('formatBtn'),document.getElementById('formatPop'),v.querySelector('.rich-editor'));
   v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
     const a=b.dataset.a,D=db.sections;
