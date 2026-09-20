@@ -994,9 +994,12 @@ async function boot(){
 function render(){
   renderBooks();pickTiers();
   paintWaterline();
-  $('#legend').innerHTML=Object.entries(TIERS).map(([k,v])=>
+  const legend=$('#legend');
+  if(legend){
+    legend.innerHTML=Object.entries(TIERS).map(([k,v])=>
       `<span><i class="dot" style="background:var(${v})"></i>${k}</span>`).join('')
-    +`<span id="counts">${db.sections.length} sections · ${totalWords().toLocaleString()} words</span>`;
+      +`<span id="counts">${db.sections.length} sections · ${totalWords().toLocaleString()} words</span>`;
+  }
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   renderTools();
   ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg})[tab]();
