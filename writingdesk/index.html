@@ -154,7 +154,7 @@
   .stage-syn-edit:focus{outline:none;border-bottom-color:var(--ink)}
   .stage-draft{margin-top:38px;padding-top:24px;border-top:1px solid var(--rule)}
   .stage-draft label{font-size:13px;color:var(--soft);font-style:italic}
-  .stage-draft textarea{height:62vh;min-height:360px;max-height:72vh;font-size:20px;line-height:1.8;border:0;border-radius:0;background:transparent;padding:16px 8px 16px 0;resize:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
+  .stage-draft textarea{height:62vh;min-height:360px;max-height:72vh;font-size:16px;line-height:1.8;border:0;border-radius:0;background:transparent;padding:16px 8px 16px 0;resize:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
   .stage-draft textarea::-webkit-scrollbar{width:5px}
   .stage-draft textarea::-webkit-scrollbar-track{background:transparent}
   .stage-draft textarea::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--soft) 55%,transparent);border-radius:8px}
@@ -167,7 +167,7 @@
   .format-pop select{height:28px;background:none;border:1px solid var(--rule);color:var(--ink);font-size:13px;padding:2px 20px 2px 6px}
   .format-pop button{width:28px;height:28px;border:0;background:none;color:var(--soft);cursor:pointer;border-radius:3px;font-size:14px}
   .format-pop button:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
-  .rich-editor{width:100%;height:62vh;min-height:360px;max-height:72vh;font-size:20px;line-height:1.8;background:transparent;padding:16px 8px 16px 0;overflow-y:auto;outline:none;white-space:normal;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
+  .rich-editor{width:100%;height:62vh;min-height:360px;max-height:72vh;font-size:16px;line-height:1.8;background:transparent;padding:16px 8px 16px 0;overflow-y:auto;outline:none;white-space:normal;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
   .rich-editor::-webkit-scrollbar{width:5px}
   .rich-editor::-webkit-scrollbar-track{background:transparent}
   .rich-editor::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--soft) 55%,transparent);border-radius:8px}
@@ -255,7 +255,7 @@
   .fsyn-head b:hover{color:var(--ink)}
   .fsyn-text.collapsed{display:none}
   .fcol:focus-within .fsyn{opacity:.28}
-    #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:20px;line-height:1.78;
+    #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:16px;line-height:1.78;
     padding:0;overflow:visible;display:block;outline:none;white-space:normal}
   #ftext blockquote{border-left:2px solid var(--lantern);padding-left:18px;margin-left:0;color:var(--soft)}
   .fscratch{margin-top:44px;padding-top:20px;border-top:1px solid var(--rule);opacity:.5;
@@ -433,7 +433,7 @@
     <span class="sp"></span>
     <span id="fwc"></span>
     <select id="fstatus"></select>
-    <div class="f-format"><button class="format-btn" id="fFormatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="f-format-pop" id="fFormatPop"><select data-format-font><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><select data-format-size aria-label="Font size"><option value="16px">Small</option><option value="20px" selected>Normal</option><option value="24px">Large</option><option value="28px">Huge</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
+    <div class="f-format"><button class="format-btn" id="fFormatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="f-format-pop" id="fFormatPop"><select data-format-font><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><select data-format-size aria-label="Font size"><option value="16px" selected>Small</option><option value="20px">Normal</option><option value="24px">Large</option><option value="28px">Huge</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
     <button class="btn" id="fprev">Previous</button>
     <button class="btn" id="fnext">Next unwritten</button>
     <button class="btn" id="fclose">Close</button>
