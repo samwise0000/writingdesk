@@ -251,7 +251,7 @@
   .fsyn{font-size:15px;color:var(--soft);font-style:italic;margin:0 0 34px;max-width:58ch;
     opacity:.75;transition:opacity .25s;position:relative}
   .fsyn-head{display:flex;align-items:center;gap:6px;margin-bottom:7px}
-  .fsyn-head b{display:inline;font-style:normal;color:var(--soft);margin:0;font-size:13px;user-select:none}
+  .fsyn-head b{display:inline;font-style:normal;color:var(--soft);margin:0;font-size:13px;user-select:none;cursor:pointer}
   .fsyn-head span{color:var(--soft);font-size:13px;user-select:none}
   .fsyn-text.collapsed{display:none}
   .fcol:focus-within .fsyn{opacity:.28}
@@ -439,7 +439,7 @@
     <button class="btn" id="fclose">Close</button>
   </div>
   <div class="fwrap"><div class="fcol">
-    <div class="fsyn" id="fsyn"><div class="fsyn-head"><b id="fsynhead">Tense &amp; voice</b><span id="fsynsep">·</span><b id="fsynsetting">Setting</b></div></div>
+    <div class="fsyn" id="fsyn"><div class="fsyn-head" title="Click to expand synopsis"><b id="fsynhead">Tense &amp; voice</b><span id="fsynsep">·</span><b id="fsynsetting">Setting</b></div><span class="fsyn-text collapsed" id="fsyntext"></span></div>
     <div id="ftext" class="rich-editor" contenteditable="true" data-placeholder="Write."></div>
     <div class="fscratch">
       <label>Scratch — cut lines, alternates, things to come back to</label>
@@ -1369,6 +1369,9 @@ function openFocus(i){
   $('#fmeta').textContent=`${s.part} · ${s.tier}`;
   $('#fsynhead').textContent=s.tense||'Tense & voice';
   $('#fsynsetting').textContent=s.setting||'Setting';
+  $('#fsyntext').textContent=s.synopsis||'';
+  $('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);
+  $('#fsyn').classList.toggle('expanded',!focusSynCollapsed);
   $('#ftext').innerHTML=richEditorHtml(s.text||'');
   $('#fscratch').value=s.scratch||'';
   $('#fstatus').innerHTML=STATUS.map(t=>`<option${t===(s.status||'outline')?' selected':''}>${t}</option>`).join('');
@@ -1389,6 +1392,7 @@ function commitFocus(){
 function autoGrow(el){ if(!el)return; el.style.height='auto'; el.style.height=Math.max(el.scrollHeight, window.innerHeight*0.45)+'px' }
 function closeFocus(){commitFocus();$('#focus').classList.remove('on');document.body.classList.remove('locked');focusIdx=-1;render()}
 
+$('#fsyn .fsyn-head').onclick=()=>{focusSynCollapsed=!focusSynCollapsed;$('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);$('#fsyn').classList.toggle('expanded',!focusSynCollapsed)};
 $('#fclose').onclick=closeFocus;
 $('#fprev').onclick=()=>{commitFocus();openFocus(focusIdx-1)};
 $('#fnext').onclick=()=>{commitFocus();
