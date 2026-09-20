@@ -19,7 +19,7 @@
     --t-myth:#B57B2E;
     --t-empire:#7B6E96;
     --t-guest:#A87070;
-    --face:'Charter','Bitstream Charter','Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --face:Palatino,'Palatino Linotype','Book Antiqua',Georgia,serif;
   }
   [data-theme="dark"]{
     --paper:#121A22;
@@ -44,12 +44,12 @@
 
   /* ---- masthead / app chrome ---- */
   header{padding:0;border-bottom:1px solid var(--rule);background:var(--paper);position:relative;z-index:10}
-  .bookbar{height:72px;display:flex;gap:18px;align-items:center;padding:0 30px}
+  .bookbar{height:72px;display:flex;gap:7px;align-items:center;padding:0 30px}
   .menu-btn{font-size:18px;padding:4px 6px}
   .bookbar select{background:none;border:0;color:var(--ink);font-size:17px;padding:0;max-width:34ch;
     -webkit-appearance:none;appearance:none;cursor:pointer;font-weight:400}
-  .crumb{color:var(--soft);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .crumb::before{content:'/' ;margin-right:12px;color:var(--rule)}
+  .crumb{color:var(--soft);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:0}
+  .crumb::before{content:'/' ;margin-right:7px;color:var(--rule)}
   .topwords{margin-left:auto;color:var(--soft);font-size:15px;white-space:nowrap}
   .quiet{background:none;border:0;color:var(--soft);font-size:13px;cursor:pointer;padding:2px 0;border-bottom:1px solid transparent}
   .quiet:hover{color:var(--ink);border-bottom-color:var(--rule)}
@@ -77,7 +77,7 @@
   .title-row h1{margin-bottom:4px}
   .icon-btn{background:none;border:0;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;padding:4px 2px;opacity:.82}
   .icon-btn:hover{color:var(--ink);opacity:1}
-  .book-edit{font-size:17px;margin-top:-4px}
+  .book-edit{font-size:17px;margin-top:-4px;margin-left:0}
   .manuscript-tab{margin-left:auto;color:var(--lantern);font-weight:600;border-bottom-color:transparent}
   .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern);border-bottom-color:var(--lantern)}
 
@@ -110,7 +110,7 @@
   .rail-item.on .rail-dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--lantern) 18%,transparent)}
   .rail-num{font-size:11px;color:var(--soft);flex:0 0 22px}
   .rail-title{font-size:14.5px;line-height:1.3;min-width:0}
-  .mainpane{min-width:0;padding:0 46px 120px 6px}
+  .mainpane{min-width:0;padding:0 46px 120px 46px}
   .tools{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:0;position:sticky;top:0;
     background:var(--paper);padding:18px 0;z-index:5;border-bottom:1px solid var(--rule)}
   .btn{background:none;color:var(--soft);border:0;border-bottom:1px solid transparent;
@@ -127,16 +127,18 @@
   .section-stage{width:100%;max-width:none;margin:0;padding:42px 0 80px}
   .stage-head{display:flex;align-items:flex-start;gap:28px;margin-bottom:14px}
   .stage-head-main{min-width:0;flex:1}
+  .stage-title-line{display:flex;align-items:center;gap:2px}
   .stage-kicker{font-size:13px;color:var(--soft);font-style:italic;margin-bottom:12px}
   .stage-title-input{display:block;width:100%;background:none;border:0;padding:0;font-family:var(--face);font-size:38px;line-height:1.12;font-weight:400;letter-spacing:-.015em;color:inherit;margin:0;outline:none}
   .stage-title-input:focus{border-bottom:1px solid var(--rule)}
+  .stage-title-line .stage-info-toggle{flex:0 0 auto}
   .stage-focus{flex:0 0 auto;margin-top:27px;padding:7px 12px;border:1px solid var(--lantern);border-radius:2px;color:var(--lantern);font-size:14px;background:none;cursor:pointer}
   .stage-focus:hover{background:color-mix(in srgb,var(--lantern) 8%,transparent)}
-  .stage-info-toggle{margin:0 0 18px;padding:0;background:none;border:0;color:var(--soft);font-size:13px;cursor:pointer;border-bottom:1px solid transparent}
-  .stage-info-toggle:hover{color:var(--ink);border-bottom-color:var(--rule)}
+  .stage-info-toggle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin:0 0 0 8px;padding:0;background:none;border:0;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;border-radius:50%}
+  .stage-info-toggle:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .stage-info{display:block}
   .section-stage.info-collapsed .stage-info{display:none}
-  .section-stage.info-collapsed .stage-info-toggle{margin-bottom:28px}
+  .section-stage.info-collapsed .stage-info-toggle{margin-bottom:0}
   .stage-title{font-size:38px;line-height:1.12;font-weight:400;letter-spacing:-.015em;margin:0 0 12px}
   .stage-syn{font-size:18px;line-height:1.65;color:color-mix(in srgb,var(--ink) 78%,var(--paper));max-width:72ch;white-space:pre-wrap;margin:0 0 34px}
   .stage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-bottom:34px}
@@ -153,6 +155,21 @@
   .stage-draft textarea::-webkit-scrollbar-track{background:transparent}
   .stage-draft textarea::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--soft) 55%,transparent);border-radius:8px}
   .stage-draft textarea::-webkit-scrollbar-thumb:hover{background:var(--soft)}
+  .draft-toolbar{display:flex;align-items:center;gap:7px;margin:0 0 10px;position:relative}
+  .format-btn{width:30px;height:28px;border:1px solid var(--rule);background:none;color:var(--soft);border-radius:3px;cursor:pointer;font-size:14px;line-height:1}
+  .format-btn:hover,.format-btn.on{color:var(--ink);background:var(--raise);border-color:var(--soft)}
+  .format-pop{display:none;align-items:center;gap:6px;position:absolute;left:0;top:34px;z-index:12;padding:7px;background:var(--raise);border:1px solid var(--rule);border-radius:4px;box-shadow:0 8px 24px color-mix(in srgb,#000 18%,transparent)}
+  .format-pop.open{display:flex}
+  .format-pop select{height:28px;background:none;border:1px solid var(--rule);color:var(--ink);font-size:13px;padding:2px 20px 2px 6px}
+  .format-pop button{width:28px;height:28px;border:0;background:none;color:var(--soft);cursor:pointer;border-radius:3px;font-size:14px}
+  .format-pop button:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+  .rich-editor{width:100%;height:62vh;min-height:360px;max-height:72vh;font-size:20px;line-height:1.8;background:transparent;padding:16px 8px 16px 0;overflow-y:auto;outline:none;white-space:normal;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 55%,transparent) transparent}
+  .rich-editor::-webkit-scrollbar{width:5px}
+  .rich-editor::-webkit-scrollbar-track{background:transparent}
+  .rich-editor::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--soft) 55%,transparent);border-radius:8px}
+  .rich-editor::-webkit-scrollbar-thumb:hover{background:var(--soft)}
+  .rich-editor:empty:before{content:attr(data-placeholder);color:var(--soft);opacity:.65}
+  .rich-editor blockquote{border-left:2px solid var(--lantern);padding-left:18px;margin-left:0;color:var(--soft)}
   .stage-actions{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
   #spineList{padding-bottom:30px}
   @media (max-width:1000px){.workspace{grid-template-columns:250px minmax(0,1fr)}.mainpane{padding-left:30px;padding-right:30px}.bookbar{padding:0 22px}}
@@ -218,6 +235,12 @@
   .fbar strong{color:var(--ink);font-size:15px;font-weight:400}
   .fbar .sp{margin-left:auto}
   .fbar select{background:none;border:0;color:var(--soft);font-size:13px}
+  .f-format{position:relative;display:flex;align-items:center}
+  .f-format-pop{display:none;position:absolute;right:0;top:30px;z-index:50;align-items:center;gap:6px;padding:7px;background:var(--raise);border:1px solid var(--rule);border-radius:4px;box-shadow:0 8px 24px color-mix(in srgb,#000 20%,transparent)}
+  .f-format-pop.open{display:flex}
+  .f-format-pop select{border:1px solid var(--rule);padding:3px 18px 3px 6px;background:none}
+  .f-format-pop button{width:28px;height:28px;border:0;background:none;color:var(--soft);cursor:pointer}
+  .f-format-pop button:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
   .fwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
     display:block;padding:12px 28px 140px}
   .fcol{width:100%;max-width:64ch;margin:0 auto}
@@ -226,8 +249,8 @@
   .fcol:focus-within .fsyn{opacity:.28}
   .fsyn b{display:block;font-style:normal;color:var(--soft);margin-bottom:6px;font-size:13px}
   #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:20px;line-height:1.78;
-    resize:none;padding:0;overflow:hidden;display:block}
-  #ftext:focus{outline:none}
+    padding:0;overflow:visible;display:block;outline:none;white-space:normal}
+  #ftext blockquote{border-left:2px solid var(--lantern);padding-left:18px;margin-left:0;color:var(--soft)}
   .fscratch{margin-top:44px;padding-top:20px;border-top:1px solid var(--rule);opacity:.5;
     transition:opacity .3s}
   .fscratch:hover,.fscratch:focus-within{opacity:1}
@@ -402,13 +425,14 @@
     <span class="sp"></span>
     <span id="fwc"></span>
     <select id="fstatus"></select>
+    <div class="f-format"><button class="format-btn" id="fFormatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="f-format-pop" id="fFormatPop"><select data-format-font id="fFont"><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
     <button class="btn" id="fprev">Previous</button>
     <button class="btn" id="fnext">Next unwritten</button>
     <button class="btn" id="fclose">Close</button>
   </div>
   <div class="fwrap"><div class="fcol">
     <p class="fsyn"><b id="fsynhead"></b><span id="fsyntext"></span></p>
-    <textarea id="ftext" placeholder="Write."></textarea>
+    <div id="ftext" class="rich-editor" contenteditable="true" data-placeholder="Write."></div>
     <div class="fscratch">
       <label>Scratch — cut lines, alternates, things to come back to</label>
       <textarea id="fscratch"></textarea>
@@ -718,7 +742,7 @@ const att=t=>String(t??'').replace(/"/g,'&quot;');
 const words=t=>String(t||'').trim()?String(t).trim().split(/\s+/).length:0;
 const today=()=>new Date().toISOString().slice(0,10);
 function say(m){const e=statusEl();e.textContent=m;clearTimeout(say._t);say._t=setTimeout(()=>e.textContent='',2200)}
-const totalWords=()=>db.sections.reduce((n,s)=>n+words(s.text),0);
+const totalWords=()=>db.sections.reduce((n,s)=>n+words(richPlain(s.text)),0);
 
 const LS = 'writingdesk:'+STORE;
 const KEYLS = 'writingdesk:key';
@@ -1090,6 +1114,46 @@ function visible(s){
   return (s.title+' '+s.synopsis+' '+s.setting+' '+s.part+' '+(s.text||'')).toLowerCase().includes(query)
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.rail-row'))document.querySelectorAll('.rail-menu.open').forEach(m=>m.classList.remove('open'))});
+function sanitizeRich(html){
+  const box=document.createElement('div');box.innerHTML=String(html||'');
+  box.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(n=>n.remove());
+  box.querySelectorAll('*').forEach(el=>{
+    [...el.attributes].forEach(a=>{
+      const ok=(el.tagName==='FONT'&&a.name.toLowerCase()==='face')||(el.tagName==='SPAN'&&a.name.toLowerCase()==='style');
+      if(!ok)el.removeAttribute(a.name);
+    });
+    if(el.tagName==='SPAN'&&el.hasAttribute('style')){
+      const st=el.getAttribute('style');
+      const m=st.match(/font-family\s*:\s*([^;]+)/i);
+      if(m)el.setAttribute('style','font-family:'+m[1].replace(/["']/g,'')); else el.removeAttribute('style');
+    }
+  });
+  return box.innerHTML;
+}
+function richEditorHtml(text){
+  const raw=String(text||'');
+  if(/<\/?(b|strong|i|em|u|blockquote|br|p|div|ul|ol|li|font|span)\b/i.test(raw)) return sanitizeRich(raw);
+  return esc(raw).replace(/\r?\n/g,'<br>');
+}
+function richPlain(html){
+  const box=document.createElement('div');box.innerHTML=String(html||'');
+  box.querySelectorAll('br').forEach(br=>br.replaceWith('\n'));
+  return box.textContent||'';
+}
+function formatEditor(editor,cmd,value){
+  if(!editor)return;editor.focus();
+  if(cmd==='blockquote'){document.execCommand('formatBlock',false,'blockquote')}
+  else if(cmd==='fontName'){document.execCommand('fontName',false,value)}
+  else document.execCommand(cmd,false,null);
+  editor.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function bindFormatToolbar(btn,pop,editor){
+  if(!btn||!pop||!editor)return;
+  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.format-pop.open,.f-format-pop.open').forEach(x=>{if(x!==pop)x.classList.remove('open')});pop.classList.toggle('open')};
+  pop.querySelectorAll('[data-format]').forEach(b=>b.onclick=e=>{e.preventDefault();formatEditor(editor,b.dataset.format==='blockquote'?'blockquote':b.dataset.format);});
+  const fs=pop.querySelector('[data-format-font]');
+  if(fs)fs.onchange=()=>formatEditor(editor,'fontName',fs.value);
+}
 function renderSpine(){
   const rail=$('#spineList'), v=$('#view');
   if(!rail||!v)return;
@@ -1133,11 +1197,10 @@ function renderSpine(){
     <div class="stage-head">
       <div class="stage-head-main">
         <div class="stage-kicker">${esc(s.part||'Unassigned')} · section ${i+1} of ${db.sections.length}</div>
-        <input class="stage-title-input" data-k="title" value="${att(s.title||'Untitled section')}" aria-label="Section title">
+        <div class="stage-title-line"><input class="stage-title-input" data-k="title" value="${att(s.title||'Untitled section')}" aria-label="Section title"><button class="stage-info-toggle" type="button" id="stageInfoToggle" aria-label="Toggle section info" title="Toggle section info">${infoCollapsed?'⌄':'⌃'}</button></div>
       </div>
       <button class="stage-focus" type="button" data-a="focus">⛶ Focus</button>
     </div>
-    <button class="stage-info-toggle" type="button" id="stageInfoToggle">${infoCollapsed?'Show section info':'Hide section info'}</button>
     <div class="stage-info">
       <div class="stage-syn"><label style="display:block;font-size:12px;color:var(--soft);font-style:italic;margin-bottom:7px">Synopsis</label><textarea class="stage-syn-edit" data-k="synopsis">${esc(s.synopsis||'')}</textarea></div>
       <div class="stage-grid">
@@ -1151,8 +1214,8 @@ function renderSpine(){
       </div>
     </div>
     <div class="stage-draft">
-      <label>Draft text · ${words(s.text)} words</label>
-      <textarea data-k="text" data-live="1" placeholder="Nothing written yet.">${esc(s.text||'')}</textarea>
+      <div class="draft-toolbar"><label>Draft text · ${words(richPlain(s.text))} words</label><button class="format-btn" id="formatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="format-pop" id="formatPop"><select data-format-font><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
+      <div class="rich-editor" data-k="text" data-live="1" contenteditable="true" data-placeholder="Nothing written yet.">${richEditorHtml(s.text||'')}</div>
       <div class="stage-actions">
         <button class="btn" data-a="up">Move up</button>
         <button class="btn" data-a="down">Move down</button>
@@ -1165,13 +1228,14 @@ function renderSpine(){
   if(infoToggle)infoToggle.onclick=()=>{infoCollapsed=!infoCollapsed;renderSpine()};
   v.querySelectorAll('[data-k]').forEach(f=>{
     if(f.dataset.live){
-      f.oninput=()=>{dirty=true;s.text=f.value;const lab=v.querySelector('.stage-draft label');if(lab)lab.textContent='Draft text · '+words(f.value)+' words';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();renderMs();paintWaterline()},1200)};
-      f.onblur=()=>{clearTimeout(saveTimer);s.text=f.value;save();renderMs();paintWaterline()}
+      f.oninput=()=>{dirty=true;s.text=sanitizeRich(f.innerHTML);const lab=v.querySelector('.stage-draft label');if(lab)lab.textContent='Draft text · '+words(richPlain(s.text))+' words';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();renderMs();paintWaterline()},1200)};
+      f.onblur=()=>{clearTimeout(saveTimer);s.text=sanitizeRich(f.innerHTML);save();renderMs();paintWaterline()}
     }else if(f.dataset.k==='title'){
       f.oninput=()=>{dirty=true;s.title=f.value;clearTimeout(saveTimer);saveTimer=setTimeout(()=>{save();renderSpine();renderBooks();paintWaterline()},700)};
       f.onblur=()=>{clearTimeout(saveTimer);s.title=f.value.trim()||'Untitled section';save();renderSpine();renderBooks();paintWaterline()}
     }else f.onchange=()=>{s[f.dataset.k]=f.value;save();render()}
   });
+  bindFormatToolbar(document.getElementById('formatBtn'),document.getElementById('formatPop'),v.querySelector('.rich-editor'));
   v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
     const a=b.dataset.a,D=db.sections;
     if(a==='up'&&i>0){D.splice(i-1,0,D.splice(i,1)[0]);selectedIdx=i-1}
@@ -1293,17 +1357,17 @@ function openFocus(i){
   $('#fmeta').textContent=`${s.part} · ${s.tier}`;
   $('#fsynhead').textContent=`${s.tense} — ${s.setting}`;
   $('#fsyntext').textContent=s.synopsis;
-  $('#ftext').value=s.text||'';
+  $('#ftext').innerHTML=richEditorHtml(s.text||'');
   $('#fscratch').value=s.scratch||'';
   $('#fstatus').innerHTML=STATUS.map(t=>`<option${t===(s.status||'outline')?' selected':''}>${t}</option>`).join('');
   $('#fwc').textContent=words(s.text)+' words';
   $('#focus').classList.add('on');
   document.body.classList.add('locked');
-  setTimeout(()=>{autoGrow($('#ftext'));autoGrow($('#fscratch'));$('#ftext').focus()},30)
+  setTimeout(()=>{autoGrow($('#fscratch'));$('#ftext').focus()},30)
 }
 function commitFocus(){
   if(focusIdx<0)return;
-  const s=db.sections[focusIdx],t=$('#ftext').value,c=$('#fscratch').value,st=$('#fstatus').value;
+  const s=db.sections[focusIdx],t=sanitizeRich($('#ftext').innerHTML),c=$('#fscratch').value,st=$('#fstatus').value;
   let changed=false;
   if(s.text!==t){s.text=t;changed=true;if(t.trim()&&(s.status||'outline')==='outline'){s.status='drafted'}}
   if(s.scratch!==c){s.scratch=c;changed=true}
@@ -1321,15 +1385,16 @@ $('#fnext').onclick=()=>{commitFocus();
   openFocus(i)};
 $('#ftext').addEventListener('input',()=>{
   dirty=true;
-  autoGrow($('#ftext'));
-  $('#fwc').textContent=words($('#ftext').value)+' words';
-  if(focusIdx>-1){db.sections[focusIdx].text=$('#ftext').value;
+  $('#fwc').textContent=words(richPlain($('#ftext').innerHTML))+' words';
+  if(focusIdx>-1){db.sections[focusIdx].text=sanitizeRich($('#ftext').innerHTML);
     clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),1200)}
 });
 $('#ftext').addEventListener('blur',commitFocus);
 $('#fscratch').addEventListener('input',()=>autoGrow($('#fscratch')));
 $('#fscratch').addEventListener('blur',commitFocus);
 $('#fstatus').addEventListener('change',()=>{commitFocus()});
+bindFormatToolbar(document.getElementById('fFormatBtn'),document.getElementById('fFormatPop'),document.getElementById('ftext'));
+
 
 
 /* ---------- bible ---------- */
@@ -1503,6 +1568,11 @@ function msParts(withTitles){
   });
   return out
 }
+function renderRichManuscript(text){
+  const raw=String(text||'');
+  if(/<\/?(b|strong|i|em|u|blockquote|br|p|div|ul|ol|li|font|span)\b/i.test(raw)) return '<div class="ms-rich">'+sanitizeRich(raw)+'</div>';
+  return raw.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join('');
+}
 function renderMs(){
   const w=totalWords(), done=db.sections.filter(s=>(s.status||'outline')!=='outline').length;
   const el=$('#mswc');
@@ -1515,7 +1585,7 @@ function renderMs(){
       : items.map((it,k)=>
           (it.newPart?`<div class="partrule">${esc(it.newPart)}</div>`:(k?'<div class="brk">&#8226;&#8226;&#8226;</div>':''))
           +(withTitles?`<p class="stitle">${esc(it.title)}</p>`:'')
-          +it.text.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join('')
+          +renderRichManuscript(it.text)
         ).join('');
   }
   if(document.getElementById('read').classList.contains('on')) renderRead();
@@ -1524,7 +1594,7 @@ function msText(withTitles){
   if(withTitles===undefined){ withTitles = false }
   return msParts().map((it,k)=>
     (it.newPart?`\n\n---- ${it.newPart} ----\n`:(k?'\n~\n':''))
-    +(withTitles?`\n*${it.title}*\n\n`:'\n')+it.text
+    +(withTitles?`\n*${it.title}*\n\n`:'\n')+richPlain(it.text)
   ).join('\n').trim()
 }
 
@@ -1635,7 +1705,7 @@ function renderRead(){
   b.innerHTML=items.map((it,k)=>
     (it.newPart?`<div class="partrule">${esc(it.newPart)}</div>`:(k?'<div class="brk">&#8226;&#8226;&#8226;</div>':''))
     +''
-    +it.text.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join('')
+    +renderRichManuscript(it.text)
   ).join('');
 }
 document.getElementById('rclose').onclick=closeRead;
