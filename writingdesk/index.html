@@ -150,7 +150,7 @@
   .stage-field .value{font-size:15px;border-bottom:1px solid var(--rule);padding:4px 0;min-height:30px}
   .stage-field input,.stage-field select{width:100%;background:none;border:0;border-bottom:1px solid var(--rule);padding:4px 0;font-size:15px}
   .stage-field input:focus,.stage-field select:focus{outline:none;border-bottom-color:var(--ink)}
-  .stage-syn-edit{width:100%;min-height:120px;background:none;border:0;border-bottom:1px solid var(--rule);padding:0 0 10px;font-size:18px;line-height:1.65;resize:vertical;color:inherit}
+  .stage-syn-edit{width:100%;min-height:240px;background:none;border:0;border-bottom:1px solid var(--rule);padding:0 0 10px;font-size:18px;line-height:1.65;resize:vertical;color:inherit}
   .stage-syn-edit:focus{outline:none;border-bottom-color:var(--ink)}
   .stage-draft{margin-top:38px;padding-top:24px;border-top:1px solid var(--rule)}
   .stage-draft label{font-size:13px;color:var(--soft);font-style:italic}
@@ -251,10 +251,9 @@
   .fsyn{font-size:15px;color:var(--soft);font-style:italic;margin:0 0 34px;max-width:58ch;
     opacity:.75;transition:opacity .25s;position:relative}
   .fsyn-head{display:flex;align-items:center;gap:6px;margin-bottom:7px}
-  .fsyn-head b{display:inline;font-style:normal;color:var(--soft);margin:0;font-size:13px}
+  .fsyn-head b{display:inline;font-style:normal;color:var(--soft);margin:0;font-size:13px;cursor:pointer;user-select:none}
+  .fsyn-head b:hover{color:var(--ink)}
   .fsyn-text.collapsed{display:none}
-  .fsyn-toggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:0;border:0;background:none;color:var(--soft);cursor:pointer;font-size:15px;line-height:1;padding:0}
-  .fsyn-toggle:hover{color:var(--ink);border-color:var(--soft);background:var(--raise)}
   .fcol:focus-within .fsyn{opacity:.28}
     #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:20px;line-height:1.78;
     padding:0;overflow:visible;display:block;outline:none;white-space:normal}
@@ -346,8 +345,10 @@
   #diag{display:none;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--soft);
     border-top:1px solid var(--rule);padding:14px 0 0;margin:14px 0 0;max-height:220px;
     overflow:auto;white-space:pre-wrap}
-  .footline{margin-top:70px;padding-top:18px;border-top:1px solid var(--rule);
-    font-size:12.5px;color:var(--soft);display:flex;gap:18px;flex-wrap:wrap;align-items:baseline}
+  .footline{position:sticky;bottom:0;z-index:8;margin-top:70px;padding:14px 0 12px;border-top:1px solid var(--rule);
+    background:var(--paper);font-size:12.5px;color:var(--soft);display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;justify-content:flex-end}
+  .footline #storeState{color:var(--soft)}
+  .footline button{flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   @media (max-width:640px){
     .wrap{padding:0 20px 140px}
@@ -438,7 +439,7 @@
     <button class="btn" id="fclose">Close</button>
   </div>
   <div class="fwrap"><div class="fcol">
-    <div class="fsyn" id="fsyn"><div class="fsyn-head"><b id="fsynhead">Synopsis</b><button class="fsyn-toggle" id="fsynToggle" type="button" aria-label="Show synopsis" title="Show synopsis">⌄</button></div><span class="fsyn-text collapsed" id="fsyntext"></span></div>
+    <div class="fsyn" id="fsyn"><div class="fsyn-head"><b id="fsynhead" role="button" tabindex="0" aria-expanded="false">Synopsis</b></div><span class="fsyn-text collapsed" id="fsyntext"></span></div>
     <div id="ftext" class="rich-editor" contenteditable="true" data-placeholder="Write."></div>
     <div class="fscratch">
       <label>Scratch — cut lines, alternates, things to come back to</label>
@@ -1363,13 +1364,11 @@ function openFocus(i){
   focusIdx=i;const s=db.sections[i];
   $('#ftitle').textContent=s.title;
   $('#fmeta').textContent=`${s.part} · ${s.tier}`;
-  $('#fsynhead').textContent=`${s.tense} — ${s.setting}`;
+  $('#fsynhead').textContent='Synopsis';
   $('#fsyntext').textContent=s.synopsis;
   focusSynCollapsed=true;
   $('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);
-  $('#fsynToggle').textContent=focusSynCollapsed?'⌄':'⌃';
-  $('#fsynToggle').setAttribute('aria-label',focusSynCollapsed?'Show synopsis':'Hide synopsis');
-  $('#fsynToggle').title=focusSynCollapsed?'Show synopsis':'Hide synopsis';
+  $('#fsynhead').setAttribute('aria-expanded',String(!focusSynCollapsed));
   $('#ftext').innerHTML=richEditorHtml(s.text||'');
   $('#fscratch').value=s.scratch||'';
   $('#fstatus').innerHTML=STATUS.map(t=>`<option${t===(s.status||'outline')?' selected':''}>${t}</option>`).join('');
@@ -1389,7 +1388,9 @@ function commitFocus(){
 }
 function autoGrow(el){ if(!el)return; el.style.height='auto'; el.style.height=Math.max(el.scrollHeight, window.innerHeight*0.45)+'px' }
 function closeFocus(){commitFocus();$('#focus').classList.remove('on');document.body.classList.remove('locked');focusIdx=-1;render()}
-$('#fsynToggle').onclick=()=>{focusSynCollapsed=!focusSynCollapsed;$('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);$('#fsynToggle').textContent=focusSynCollapsed?'⌄':'⌃';$('#fsynToggle').setAttribute('aria-label',focusSynCollapsed?'Show synopsis':'Hide synopsis');$('#fsynToggle').title=focusSynCollapsed?'Show synopsis':'Hide synopsis'};
+function toggleFocusSynopsis(){focusSynCollapsed=!focusSynCollapsed;$('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);$('#fsynhead').setAttribute('aria-expanded',String(!focusSynCollapsed));}
+$('#fsynhead').onclick=toggleFocusSynopsis;
+$('#fsynhead').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleFocusSynopsis()}};
 $('#fclose').onclick=closeFocus;
 $('#fprev').onclick=()=>{commitFocus();openFocus(focusIdx-1)};
 $('#fnext').onclick=()=>{commitFocus();
