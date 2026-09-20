@@ -44,9 +44,9 @@
 
   /* ---- masthead / app chrome ---- */
   header{padding:0;border-bottom:1px solid var(--rule);background:var(--paper);position:relative;z-index:10}
-  .bookbar{height:72px;display:flex;gap:7px;align-items:center;padding:0 30px}
+  .bookbar{height:72px;display:flex;gap:3px;align-items:center;padding:0 30px}
   .menu-btn{font-size:18px;padding:4px 6px}
-  .book-title-group{display:flex;align-items:center;gap:2px;min-width:0;flex:0 0 auto}
+  .book-title-group{display:flex;align-items:center;gap:0;min-width:0;flex:0 0 auto}
   .bookbar select{background:none;border:0;color:var(--ink);font-size:17px;padding:0;width:auto;max-width:34ch;
     -webkit-appearance:none;appearance:none;cursor:pointer;font-weight:400}
   .book-title-group .book-edit{margin-left:0}
@@ -80,7 +80,7 @@
   .title-row h1{margin-bottom:4px}
   .icon-btn{background:none;border:0;color:var(--soft);font-size:18px;line-height:1;cursor:pointer;padding:4px 2px;opacity:.82}
   .icon-btn:hover{color:var(--ink);opacity:1}
-  .book-edit{font-size:17px;margin-top:-4px;margin-left:0}
+  .book-edit{font-size:16px;margin-top:-2px;margin-left:-1px;padding-left:0;padding-right:0}
   .manuscript-tab{margin-left:auto;color:var(--lantern);font-weight:600;border-bottom-color:transparent}
   .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern);border-bottom-color:var(--lantern)}
 
@@ -250,12 +250,13 @@
   .fcol{width:100%;max-width:64ch;margin:0 auto}
   .fsyn{font-size:15px;color:var(--soft);font-style:italic;margin:0 0 34px;max-width:58ch;
     opacity:.75;transition:opacity .25s;position:relative}
-  .fsyn.collapsed{display:none}
-  .fsyn-toggle{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-left:7px;border:1px solid var(--rule);border-radius:50%;background:none;color:var(--soft);cursor:pointer;font-size:13px;vertical-align:middle}
+  .fsyn-head{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+  .fsyn-head b{display:inline;font-style:normal;color:var(--soft);margin:0;font-size:13px}
+  .fsyn-text.collapsed{display:none}
+  .fsyn-toggle{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin:0;border:0;background:none;color:var(--soft);cursor:pointer;font-size:15px;line-height:1;padding:0}
   .fsyn-toggle:hover{color:var(--ink);border-color:var(--soft);background:var(--raise)}
   .fcol:focus-within .fsyn{opacity:.28}
-  .fsyn b{display:block;font-style:normal;color:var(--soft);margin-bottom:6px;font-size:13px}
-  #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:20px;line-height:1.78;
+    #ftext{width:100%;min-height:50vh;background:none;border:0;font-size:20px;line-height:1.78;
     padding:0;overflow:visible;display:block;outline:none;white-space:normal}
   #ftext blockquote{border-left:2px solid var(--lantern);padding-left:18px;margin-left:0;color:var(--soft)}
   .fscratch{margin-top:44px;padding-top:20px;border-top:1px solid var(--rule);opacity:.5;
@@ -426,18 +427,18 @@
 
 <div id="focus" aria-label="Focus mode">
   <div class="fbar">
-    <strong id="ftitle"></strong><button class="fsyn-toggle" id="fsynToggle" type="button" aria-label="Show synopsis" title="Show synopsis">⌄</button>
+    <strong id="ftitle"></strong>
     <span id="fmeta"></span>
     <span class="sp"></span>
     <span id="fwc"></span>
     <select id="fstatus"></select>
-    <div class="f-format"><button class="format-btn" id="fFormatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="f-format-pop" id="fFormatPop"><select data-format-font id="fFont"><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
+    <div class="f-format"><button class="format-btn" id="fFormatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="f-format-pop" id="fFormatPop"><select data-format-font><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><select data-format-size aria-label="Font size"><option value="16px">Small</option><option value="20px" selected>Normal</option><option value="24px">Large</option><option value="28px">Huge</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
     <button class="btn" id="fprev">Previous</button>
     <button class="btn" id="fnext">Next unwritten</button>
     <button class="btn" id="fclose">Close</button>
   </div>
   <div class="fwrap"><div class="fcol">
-    <p class="fsyn" id="fsyn"><b id="fsynhead"></b><span id="fsyntext"></span></p>
+    <div class="fsyn" id="fsyn"><div class="fsyn-head"><b id="fsynhead">Synopsis</b><button class="fsyn-toggle" id="fsynToggle" type="button" aria-label="Show synopsis" title="Show synopsis">⌄</button></div><span class="fsyn-text collapsed" id="fsyntext"></span></div>
     <div id="ftext" class="rich-editor" contenteditable="true" data-placeholder="Write."></div>
     <div class="fscratch">
       <label>Scratch — cut lines, alternates, things to come back to</label>
@@ -1130,8 +1131,12 @@ function sanitizeRich(html){
     });
     if(el.tagName==='SPAN'&&el.hasAttribute('style')){
       const st=el.getAttribute('style');
-      const m=st.match(/font-family\s*:\s*([^;]+)/i);
-      if(m)el.setAttribute('style','font-family:'+m[1].replace(/["']/g,'')); else el.removeAttribute('style');
+      const fam=st.match(/font-family\s*:\s*([^;]+)/i);
+      const size=st.match(/font-size\s*:\s*([^;]+)/i);
+      const styles=[];
+      if(fam)styles.push('font-family:'+fam[1].replace(/["']/g,''));
+      if(size)styles.push('font-size:'+size[1].trim());
+      if(styles.length)el.setAttribute('style',styles.join(';')); else el.removeAttribute('style');
     }
   });
   return box.innerHTML;
@@ -1150,6 +1155,7 @@ function formatEditor(editor,cmd,value){
   if(!editor)return;editor.focus();
   if(cmd==='blockquote'){document.execCommand('formatBlock',false,'blockquote')}
   else if(cmd==='fontName'){document.execCommand('fontName',false,value)}
+  else if(cmd==='fontSize'){document.execCommand('fontSize',false,'7');editor.querySelectorAll('font[size="7"]').forEach(n=>{const span=document.createElement('span');span.style.fontSize=value;span.innerHTML=n.innerHTML;n.replaceWith(span)})}
   else document.execCommand(cmd,false,null);
   editor.dispatchEvent(new Event('input',{bubbles:true}));
 }
@@ -1159,6 +1165,8 @@ function bindFormatToolbar(btn,pop,editor){
   pop.querySelectorAll('[data-format]').forEach(b=>b.onclick=e=>{e.preventDefault();formatEditor(editor,b.dataset.format==='blockquote'?'blockquote':b.dataset.format);});
   const fs=pop.querySelector('[data-format-font]');
   if(fs)fs.onchange=()=>formatEditor(editor,'fontName',fs.value);
+  const sz=pop.querySelector('[data-format-size]');
+  if(sz)sz.onchange=()=>formatEditor(editor,'fontSize',sz.value);
 }
 function renderSpine(){
   const rail=$('#spineList'), v=$('#view');
@@ -1222,12 +1230,6 @@ function renderSpine(){
     <div class="stage-draft">
       <div class="draft-toolbar"><label>Draft text · ${words(richPlain(s.text))} words</label><button class="format-btn" id="formatBtn" type="button" aria-label="Formatting" title="Formatting">A̲</button><div class="format-pop" id="formatPop"><select data-format-font><option value="Palatino">Palatino</option><option value="Georgia">Georgia</option><option value="Garamond">Garamond</option><option value="Charter">Charter</option><option value="Arial">Arial</option><option value="system-ui">System</option></select><button type="button" data-format="bold"><b>B</b></button><button type="button" data-format="italic"><i>I</i></button><button type="button" data-format="underline"><u>U</u></button><button type="button" data-format="blockquote">❝</button></div></div>
       <div class="rich-editor" data-k="text" data-live="1" contenteditable="true" data-placeholder="Nothing written yet.">${richEditorHtml(s.text||'')}</div>
-      <div class="stage-actions">
-        <button class="btn" data-a="up">Move up</button>
-        <button class="btn" data-a="down">Move down</button>
-        <button class="btn" data-a="add">Add section below</button>
-        <button class="btn" data-a="del">Delete</button>
-      </div>
     </div>
   </div>`;
   const infoToggle=document.getElementById('stageInfoToggle');
@@ -1364,7 +1366,7 @@ function openFocus(i){
   $('#fsynhead').textContent=`${s.tense} — ${s.setting}`;
   $('#fsyntext').textContent=s.synopsis;
   focusSynCollapsed=true;
-  $('#fsyn').classList.toggle('collapsed',focusSynCollapsed);
+  $('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);
   $('#fsynToggle').textContent=focusSynCollapsed?'⌄':'⌃';
   $('#fsynToggle').setAttribute('aria-label',focusSynCollapsed?'Show synopsis':'Hide synopsis');
   $('#fsynToggle').title=focusSynCollapsed?'Show synopsis':'Hide synopsis';
@@ -1387,7 +1389,7 @@ function commitFocus(){
 }
 function autoGrow(el){ if(!el)return; el.style.height='auto'; el.style.height=Math.max(el.scrollHeight, window.innerHeight*0.45)+'px' }
 function closeFocus(){commitFocus();$('#focus').classList.remove('on');document.body.classList.remove('locked');focusIdx=-1;render()}
-$('#fsynToggle').onclick=()=>{focusSynCollapsed=!focusSynCollapsed;$('#fsyn').classList.toggle('collapsed',focusSynCollapsed);$('#fsynToggle').textContent=focusSynCollapsed?'⌄':'⌃';$('#fsynToggle').setAttribute('aria-label',focusSynCollapsed?'Show synopsis':'Hide synopsis');$('#fsynToggle').title=focusSynCollapsed?'Show synopsis':'Hide synopsis'};
+$('#fsynToggle').onclick=()=>{focusSynCollapsed=!focusSynCollapsed;$('#fsyntext').classList.toggle('collapsed',focusSynCollapsed);$('#fsynToggle').textContent=focusSynCollapsed?'⌄':'⌃';$('#fsynToggle').setAttribute('aria-label',focusSynCollapsed?'Show synopsis':'Hide synopsis');$('#fsynToggle').title=focusSynCollapsed?'Show synopsis':'Hide synopsis'};
 $('#fclose').onclick=closeFocus;
 $('#fprev').onclick=()=>{commitFocus();openFocus(focusIdx-1)};
 $('#fnext').onclick=()=>{commitFocus();
