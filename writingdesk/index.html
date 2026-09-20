@@ -93,9 +93,18 @@
   .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern)!important;border-bottom-color:transparent!important}
   .rail-heading{font-size:13px;color:var(--soft);font-style:italic;margin:26px 0 10px}
   .rail-part{font-size:12.5px;color:var(--soft);font-style:italic;margin:22px 0 5px}
-  .rail-item{display:flex;gap:9px;align-items:baseline;width:100%;border:0;background:none;color:var(--soft);text-align:left;padding:7px 0;cursor:pointer;font:inherit}
+  .rail-row{position:relative;display:flex;align-items:stretch;width:100%}
+  .rail-item{display:flex;gap:9px;align-items:baseline;flex:1;min-width:0;border:0;background:none;color:var(--soft);text-align:left;padding:7px 30px 7px 0;cursor:pointer;font:inherit}
   .rail-item:hover{color:var(--ink)}
   .rail-item.on{color:var(--ink)}
+  .rail-more{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:4px;background:var(--raise);color:var(--soft);font-size:17px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,background .15s,color .15s}
+  .rail-row:hover .rail-more,.rail-row:focus-within .rail-more{opacity:1}
+  .rail-more:hover{background:var(--rule);color:var(--ink)}
+  .rail-menu{position:absolute;right:0;top:calc(100% - 2px);z-index:20;min-width:175px;padding:6px;background:var(--raise);border:1px solid var(--rule);border-radius:5px;box-shadow:0 10px 28px color-mix(in srgb,#000 24%,transparent);display:none}
+  .rail-menu.open{display:block}
+  .rail-menu button{display:block;width:100%;padding:7px 9px;border:0;background:none;color:var(--soft);font:inherit;font-size:13px;text-align:left;cursor:pointer;border-radius:3px}
+  .rail-menu button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
+  .rail-menu .danger:hover{color:#b56b68}
   .rail-dot{flex:0 0 10px;width:10px;height:10px;border-radius:50%;border:2px solid currentColor;margin-top:4px;background:currentColor;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 16%,transparent)}
   .rail-item:hover .rail-dot{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 18%,transparent)}
   .rail-item.on .rail-dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--lantern) 18%,transparent)}
@@ -1080,6 +1089,7 @@ function visible(s){
   if(!query)return true;
   return (s.title+' '+s.synopsis+' '+s.setting+' '+s.part+' '+(s.text||'')).toLowerCase().includes(query)
 }
+document.addEventListener('click',e=>{if(!e.target.closest('.rail-row'))document.querySelectorAll('.rail-menu.open').forEach(m=>m.classList.remove('open'))});
 function renderSpine(){
   const rail=$('#spineList'), v=$('#view');
   if(!rail||!v)return;
@@ -1091,10 +1101,23 @@ function renderSpine(){
       lastPart=s.part;
       const h=document.createElement('div');h.className='rail-part';h.textContent=s.part||'Unassigned';rail.appendChild(h)
     }
+    const row=document.createElement('div');row.className='rail-row';
     const b=document.createElement('button');b.className='rail-item'+(i===selectedIdx?' on':'');
     b.innerHTML=`<span class="rail-dot" style="color:var(${TIERS[s.tier]||'--soft'})"></span><span class="rail-num">${i+1}</span><span class="rail-title">${esc(s.title||'Untitled section')}</span>`;
     b.onclick=()=>{selectedIdx=i;render()};
-    rail.appendChild(b)
+    const more=document.createElement('button');more.className='rail-more';more.type='button';more.setAttribute('aria-label','Section actions');more.setAttribute('title','Section actions');more.textContent='…';
+    const menu=document.createElement('div');menu.className='rail-menu';
+    menu.innerHTML=`<button data-menu-act="up">Move up</button><button data-menu-act="down">Move down</button><button data-menu-act="add">Add section below</button><button data-menu-act="del" class="danger">Delete</button>`;
+    more.onclick=(e)=>{e.stopPropagation();document.querySelectorAll('.rail-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});menu.classList.toggle('open')};
+    menu.querySelectorAll('[data-menu-act]').forEach(btn=>btn.onclick=(e)=>{
+      e.stopPropagation();const a=btn.dataset.menuAct,D=db.sections;
+      if(a==='up'&&i>0){D.splice(i-1,0,D.splice(i,1)[0]);selectedIdx=i-1}
+      if(a==='down'&&i<D.length-1){D.splice(i+1,0,D.splice(i,1)[0]);selectedIdx=i+1}
+      if(a==='add'){D.splice(i+1,0,{part:D[i].part,tier:D[i].tier,status:'outline',tense:D[i].tense,setting:'',title:'Untitled section',synopsis:'',text:'',scratch:''});selectedIdx=i+1}
+      if(a==='del'){if(!confirm('Delete this section?'))return;D.splice(i,1);selectedIdx=Math.max(0,Math.min(i,D.length-1))}
+      menu.classList.remove('open');save();render()
+    });
+    row.appendChild(b);row.appendChild(more);row.appendChild(menu);rail.appendChild(row)
   });
   if(!visibleSections.length){rail.innerHTML='<p class="rail-heading">No matching sections.</p>'}
 
