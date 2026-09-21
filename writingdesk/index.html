@@ -61,6 +61,8 @@
   .sub{color:var(--soft);font-size:15.5px;max-width:52ch;margin:0}
   .title-row,.sub,.legend{display:none}
   .top-ms{font-size:18px!important;padding:5px 7px!important;line-height:1}
+  .header-forge{background:none;border:0;color:var(--lantern);font:600 13px/1.2 Georgia,serif;letter-spacing:.02em;cursor:pointer;padding:6px 8px;margin-left:2px}
+  .header-forge:hover{color:var(--ink)}
   .book-edit{font-size:16px;margin-top:-2px}
   body.rail-hidden .workspace{grid-template-columns:0 minmax(0,1fr)}
   body.rail-hidden #spineRail{padding:0;overflow:hidden;border-right:0}
@@ -91,7 +93,7 @@
   .daily-prompt{font-family:Palatino,Georgia,serif;font-size:18px;line-height:1.6;max-width:66ch;margin:0 0 22px}
   .daily-response{width:100%;min-height:360px;box-sizing:border-box;resize:vertical;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:16px/1.75 Palatino,Georgia,serif;padding:20px 0;outline:none}
   .daily-response:focus{border-color:var(--soft)}
-  .daily-actions{display:flex;gap:16px;align-items:center;margin:18px 0 42px}
+  .daily-actions{display:flex;gap:16px;align-items:center;margin:18px 0 42px;flex-wrap:wrap}
   .daily-saved{font-size:12px;color:var(--soft);font-style:italic}
   .daily-history{border-top:1px solid var(--rule);padding-top:24px}
   .daily-history h3{font-size:13px;font-weight:600;color:var(--soft);margin:0 0 12px}
@@ -101,7 +103,8 @@
   .daily-history-date{flex:0 0 105px;font-size:12px;color:var(--soft)}
   .daily-history-theme{font-size:14px}
   .daily-complete{color:var(--lantern)!important}
-  @media(max-width:640px){.daily-stage{padding-top:18px}.daily-title{font-size:24px}.daily-response{min-height:300px}}
+  .forge-new{margin-left:auto}
+  @media(max-width:640px){.daily-stage{padding-top:18px}.daily-title{font-size:24px}.daily-response{min-height:300px}.header-forge{padding-left:5px;padding-right:5px}}
 
   /* ---- three-panel workspace ---- */
   .workspace{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100dvh - 81px)}
@@ -386,6 +389,7 @@
     <span class="crumb" id="crumb"></span>
     <span class="topwords" id="topWords"></span>
     <button class="icon-btn" id="themeBtn" aria-label="Switch between light and dark" title="Switch theme">☾</button>
+    <button class="header-forge" id="topForge" type="button">The Forge</button>
     <button class="icon-btn top-ms" id="topManuscript" aria-label="Open manuscript" title="Open manuscript">▤</button>
   </div>
 </header>
@@ -400,7 +404,6 @@
       <button class="tab" data-t="gloss">Glossary</button>
       <button class="tab" data-t="bible">Bible</button>
       <button class="tab" data-t="prog">Progress</button>
-      <button class="tab" data-t="daily">Daily Practice</button>
       <button class="tab manuscript-tab" id="manuscriptTab" type="button">Manuscript</button>
     </nav>
     <div id="spineList"></div>
@@ -742,7 +745,7 @@ const BOOK2={"title": "A Second Summer — The Hollowing, book one", "data": {"s
 
 let ws={books:[],current:0};
 let selectedIdx=0;
-let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{},dailyExercises:[]},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,dailyDate=null;
+let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,forgeSelectedId=null;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -769,6 +772,17 @@ const esc=t=>String(t??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const att=t=>String(t??'').replace(/"/g,'&quot;');
 const words=t=>String(t||'').trim()?String(t).trim().split(/\s+/).length:0;
 const today=()=>new Date().toISOString().slice(0,10);
+function forgeList(){ws.forgeExercises=Array.isArray(ws.forgeExercises)?ws.forgeExercises:[];return ws.forgeExercises}
+function forgeId(){return 'forge-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)}
+function migrateForge(){
+  ws.forgeExercises=Array.isArray(ws.forgeExercises)?ws.forgeExercises:[];
+  ws.books.forEach(b=>{
+    const old=b&&b.data&&Array.isArray(b.data.dailyExercises)?b.data.dailyExercises:[];
+    old.forEach(x=>{if(!ws.forgeExercises.some(y=>y.id&&x.id?y.id===x.id:y.date===x.date&&y.theme===x.theme&&y.createdAt===x.createdAt)){ws.forgeExercises.push({...x,id:x.id||forgeId()})}});
+    if(b&&b.data&&b.data.dailyExercises) delete b.data.dailyExercises;
+  });
+  ws.forgeExercises.sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date)));
+}
 function say(m){const e=statusEl();e.textContent=m;clearTimeout(say._t);say._t=setTimeout(()=>e.textContent='',2200)}
 const totalWords=()=>db.sections.reduce((n,s)=>n+words(richPlain(s.text)),0);
 
@@ -859,7 +873,8 @@ async function snapshotSave(name){
   if(!DB) throw new Error('server sync is not available');
   flush();
   ws.books[ws.current].data=db;
-  const workspace=structuredClone({books:ws.books,current:ws.current});
+  migrateForge();
+  const workspace=structuredClone({books:ws.books,current:ws.current,forgeExercises:ws.forgeExercises});
   const clean=String(name||'').trim().slice(0,80);
   if(!clean) throw new Error('give the snapshot a name');
   return await api('POST',{action:'snapshot_save',name:clean,workspace});
@@ -971,10 +986,10 @@ function switchBook(i){
   ws.current=i;db=ws.books[i].data;
   db.sections=(db.sections||[]).map(x=>({text:'',scratch:'',status:(x.text&&x.text.trim())?'drafted':'outline',...x}));
   normalizeParts(ws.books[ws.current]);
-  db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];db.dailyExercises=db.dailyExercises||[];
+  db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];migrateForge();
   db.meta=db.meta||{target:130000,log:{}};db.meta.log=db.meta.log||{};
   if(db.meta.log[today()]===undefined)db.meta.log[today()]=totalWords();
-  tab='spine';filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;dailyDate=null;dailyDate=null;
+  tab='spine';filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;forgeSelectedId=null;
   save();render()
 }
 
@@ -990,7 +1005,7 @@ function adopt(raw){
   db.cast=db.cast||structuredClone(CAST);
   db.notes=db.notes||structuredClone(NOTES);
   db.gloss=db.gloss||[];
-  db.dailyExercises=db.dailyExercises||[];
+  migrateForge();
   if(db.bible===undefined)db.bible='';
   db.meta=db.meta||{target:130000,log:{}};
   db.meta.log=db.meta.log||{};
@@ -1002,6 +1017,7 @@ let saveTimer=null;
 async function save(){
   dirty=true;
   ws.books[ws.current].data=db;
+  migrateForge();
   lsSet(JSON.stringify(ws));                       // this device, immediately
   const el=document.getElementById('storeState');
   if(el){ el.textContent='saved '+new Date().toTimeString().slice(0,8)+(DB?'':' (this browser)');
@@ -1080,7 +1096,7 @@ function render(){
   }
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   renderTools();
-  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg,daily:renderDaily})[tab]();
+  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg,forge:renderDaily})[tab]();
   renderMs()
 }
 function paintWaterline(){
@@ -1106,8 +1122,8 @@ function renderTools(){
     $('#partsBtn').onclick=()=>openParts();
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
-  } else if(tab==='daily'){
-    t.innerHTML=`<span class="btn on">One exercise a day</span>`;
+  } else if(tab==='forge'){
+    t.innerHTML='';
   } else if(tab==='cast'){
     t.innerHTML=`<button class="btn primary" id="addCast">Add character</button>${common}`;
     $('#addCast').onclick=()=>{db.cast.unshift({name:'New character',group:'Secondary',world:'Myth',aka:'',role:'',note:''});save();render()};
@@ -1135,6 +1151,7 @@ function renderTools(){
   const msBtn=document.getElementById('manuscriptTab');
   if(msBtn) msBtn.onclick=()=>openManuscript();
   const topMs=document.getElementById('topManuscript'); if(topMs) topMs.onclick=()=>openManuscript();
+  const topForge=document.getElementById('topForge'); if(topForge) topForge.onclick=()=>{tab='forge';query='';forgeSelectedId=null;render()};
   const menu=document.getElementById('menuBtn'); if(menu) menu.onclick=()=>document.body.classList.toggle('rail-hidden');
 }
 
@@ -1414,23 +1431,35 @@ const DAILY_PROMPTS={
 'Introducing a Character':'Introduce a character through action rather than description. By the end of 500 words, the reader should understand something important about their personality without being directly told what kind of person they are.',
 'Heated Dialogue':'Write a heated argument in which neither character says exactly what they mean. Keep the dialogue fast and specific. Give each character one thing they desperately want the other person to understand.'
 };
-function dailyToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function dailyDayIndex(date){const a=new Date('2024-01-01T00:00:00'),b=new Date(date+'T00:00:00');return Math.floor((b-a)/86400000)}
-function ensureDailyEntry(date=today()){
-  db.dailyExercises=db.dailyExercises||[];
-  let e=db.dailyExercises.find(x=>x.date===date);
-  if(!e){const [number,theme]=DAILY_THEMES[((dailyDayIndex(date)%DAILY_THEMES.length)+DAILY_THEMES.length)%DAILY_THEMES.length];e={date,number,theme,prompt:DAILY_PROMPTS[theme],response:'',completed:false,createdAt:new Date().toISOString()};db.dailyExercises.push(e);db.dailyExercises.sort((a,b)=>String(b.date).localeCompare(String(a.date)));save()}
-  return e
-}
+function dailyToday(){return today()}
 function formatDailyDate(v){try{return new Date(v+'T00:00:00').toLocaleDateString([], {weekday:'short',month:'short',day:'numeric',year:'numeric'})}catch(e){return v}}
+function forgeEntriesForDate(date){return forgeList().filter(x=>x.date===date).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}
+function ensureDailyEntry(date=dailyToday()){
+  const list=forgeEntriesForDate(date);
+  if(list.length)return list[0];
+  const [number,theme]=DAILY_THEMES[((dailyDayIndex(date)%DAILY_THEMES.length)+DAILY_THEMES.length)%DAILY_THEMES.length];
+  const e={id:forgeId(),date,number,theme,prompt:DAILY_PROMPTS[theme],response:'',completed:false,createdAt:new Date().toISOString()};
+  forgeList().push(e);forgeList().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));forgeSelectedId=e.id;save();return e
+}
+function newForgeExercise(date=dailyToday()){
+  const existing=forgeEntriesForDate(date);
+  const offset=existing.length;
+  const [number,theme]=DAILY_THEMES[((dailyDayIndex(date)+offset)%DAILY_THEMES.length+DAILY_THEMES.length)%DAILY_THEMES.length];
+  const e={id:forgeId(),date,number,theme,prompt:DAILY_PROMPTS[theme],response:'',completed:false,createdAt:new Date().toISOString()};
+  forgeList().push(e);forgeSelectedId=e.id;save();render();
+}
 function renderDaily(){
-  const v=$('#view');if(!v)return;const date=dailyDate||dailyToday(),e=ensureDailyEntry(date);
-  v.innerHTML=`<div class="daily-stage"><div class="daily-kicker">Daily writing exercise · ${esc(formatDailyDate(e.date))}</div><h2 class="daily-title">Exercise ${e.number}</h2><p class="daily-theme">${esc(e.theme)}</p><p class="daily-prompt">${esc(e.prompt)}</p><textarea id="dailyResponse" class="daily-response" placeholder="Write here…">${esc(e.response||'')}</textarea><div class="daily-actions"><button class="btn primary" id="dailyComplete">${e.completed?'Completed ✓':'Mark complete'}</button><span class="daily-saved" id="dailySaved">${e.response?'Saved':'Nothing written yet'}</span></div><div class="daily-history"><h3>Previous exercises</h3>${db.dailyExercises.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="daily-history-row"><span class="daily-history-date">${esc(formatDailyDate(x.date))}</span><button data-daily-date="${att(x.date)}" class="${x.completed?'daily-complete':''}">${esc(x.theme)}${x.completed?' ✓':''}</button></div>`).join('')}</div></div>`;
-  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete');let timer=null;
+  const v=$('#view');if(!v)return;
+  const date=dailyToday();let entries=forgeEntriesForDate(date);if(!entries.length){ensureDailyEntry(date);entries=forgeEntriesForDate(date)}
+  let e=entries.find(x=>x.id===forgeSelectedId)||entries[entries.length-1];forgeSelectedId=e.id;
+  const history=forgeList().filter(x=>x.date!==date).sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date)));
+  v.innerHTML=`<div class="daily-stage"><div class="daily-kicker">Writing practice · ${esc(formatDailyDate(date))}</div><h2 class="daily-title">The Forge</h2><p class="daily-theme">Exercise ${e.number} · ${esc(e.theme)}</p><p class="daily-prompt">${esc(e.prompt)}</p><textarea id="dailyResponse" class="daily-response" placeholder="Write here…">${esc(e.response||'')}</textarea><div class="daily-actions"><button class="btn primary" id="dailyComplete">${e.completed?'Completed ✓':'Mark complete'}</button><button class="btn forge-new" id="forgeNew">Another exercise</button><span class="daily-saved" id="dailySaved">${e.response?'Saved':'Nothing written yet'}</span></div>${entries.length>1?`<div class="daily-history"><h3>Today</h3>${entries.map(x=>`<div class="daily-history-row"><span class="daily-history-date">Exercise ${x.number}</span><button data-forge-id="${att(x.id)}" class="${x.id===e.id?'daily-complete':''}">${esc(x.theme)}${x.completed?' ✓':''}</button></div>`).join('')}</div>`:''}<div class="daily-history"><h3>Previous exercises</h3>${history.length?history.map(x=>`<div class="daily-history-row"><span class="daily-history-date">${esc(formatDailyDate(x.date))}</span><button data-forge-id="${att(x.id)}" class="${x.completed?'daily-complete':''}">Exercise ${x.number} · ${esc(x.theme)}${x.completed?' ✓':''}</button></div>`).join(''):'<p class="state-empty">No previous exercises yet.</p>'}</div></div>`;
+  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete'),fresh=$('#forgeNew');let timer=null;
   const persist=()=>{e.response=ta.value;saveLabel.textContent='Saved just now';save()};
   ta.oninput=()=>{e.response=ta.value;saveLabel.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};ta.onblur=()=>{clearTimeout(timer);persist()};
   complete.onclick=()=>{e.response=ta.value;e.completed=!e.completed;save();renderDaily()};
-  v.querySelectorAll('[data-daily-date]').forEach(b=>b.onclick=()=>{e.response=ta.value;save();dailyDate=b.dataset.dailyDate;renderDaily()});
+  fresh.onclick=()=>{e.response=ta.value;save();newForgeExercise(date)};
+  v.querySelectorAll('[data-forge-id]').forEach(b=>b.onclick=()=>{e.response=ta.value;save();forgeSelectedId=b.dataset.forgeId;renderDaily()});
 }
 
 /* ---------- focus mode ---------- */
