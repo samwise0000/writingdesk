@@ -101,6 +101,64 @@
   .forge-response:focus{border-color:var(--soft)}
   .forge-add-row{margin-top:8px;padding-top:18px;border-top:1px solid var(--rule)}
   @media(max-width:640px){body.forge-mode .workspace{grid-template-columns:1fr}.forge-stage{padding-top:28px}.forge-exercise-head{gap:10px}.forge-exercise-theme{font-size:24px}}
+
+  /* ---- studio nav (inside the forge rail) ---- */
+  .studio-nav{display:flex;gap:0;border-bottom:1px solid var(--rule);margin:18px 0 0;padding-bottom:0}
+  .studio-tab{flex:1;background:none;border:0;border-bottom:2px solid transparent;color:var(--soft);font:inherit;font-size:12.5px;padding:8px 4px 9px;cursor:pointer;text-align:center;transition:color .15s,border-color .15s}
+  .studio-tab:hover{color:var(--ink)}
+  .studio-tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--lantern)}
+
+  /* ---- reading log ---- */
+  .rl-stage{max-width:720px;padding:40px 0 90px}
+  .rl-book-title{font-family:Georgia,serif;font-size:26px;font-weight:400;line-height:1.2;margin:0;background:none;border:0;border-bottom:1px solid transparent;padding:0;color:var(--ink);width:100%}
+  .rl-book-title:focus{outline:none;border-bottom-color:var(--rule)}
+  .rl-book-title::placeholder{color:var(--soft)}
+  .rl-author-row{display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .rl-author{flex:1;min-width:180px;background:none;border:0;border-bottom:1px solid var(--rule);padding:4px 0;font:15px/1.5 var(--face);color:var(--soft)}
+  .rl-author:focus{outline:none;border-bottom-color:var(--ink);color:var(--ink)}
+  .rl-author::placeholder{color:var(--soft);opacity:.6}
+  .rl-status-sel{background:none;border:0;border-bottom:1px solid var(--rule);font:13px var(--face);color:var(--soft);padding:4px 0;cursor:pointer}
+  .rl-status-sel:focus{outline:none;border-bottom-color:var(--ink)}
+  .rl-steal-label{font-size:12px;color:var(--soft);font-style:italic;margin:24px 0 8px;display:block}
+  .rl-steal{width:100%;min-height:220px;background:transparent;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:16px 0;resize:vertical;outline:none}
+  .rl-steal:focus{border-color:var(--soft)}
+  .rl-actions{display:flex;gap:14px;align-items:center;margin-top:14px}
+  .rl-saved{font-size:12px;color:var(--soft);font-style:italic}
+  .rl-empty{padding:48px 0 24px;color:var(--soft);font-style:italic;font-size:16px}
+  .rl-rail-row{display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--rule) 65%,transparent)}
+  .rl-rail-row button:first-child{flex:1;min-width:0;background:none;border:0;text-align:left;color:var(--soft);padding:9px 0;font:inherit;cursor:pointer}
+  .rl-rail-row button:first-child:hover,.rl-rail-row button:first-child.on{color:var(--ink)}
+  .rl-rail-row button:first-child.on{font-weight:600}
+  .rl-rail-meta{display:block;font-size:11px;color:var(--soft);margin-bottom:1px}
+  .rl-rail-title{display:block;font-size:14px;line-height:1.3}
+  .rl-rail-delete{flex:0 0 auto;background:none;border:0;color:var(--soft);font-size:17px;line-height:1;padding:10px 2px;cursor:pointer;opacity:0;transition:opacity .15s}
+  .rl-rail-row:hover .rl-rail-delete,.rl-rail-row:focus-within .rl-rail-delete{opacity:.5}
+  .rl-rail-delete:hover{color:var(--ink);opacity:1}
+
+  /* ---- lexicon ---- */
+  .lex-stage{max-width:720px;padding:40px 0 90px}
+  .lex-term{font-family:Georgia,serif;font-size:26px;font-weight:400;line-height:1.2;margin:0;background:none;border:0;border-bottom:1px solid transparent;padding:0;color:var(--ink);width:100%}
+  .lex-term:focus{outline:none;border-bottom-color:var(--rule)}
+  .lex-term::placeholder{color:var(--soft)}
+  .lex-cat-row{display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .lex-cat-sel{background:none;border:0;border-bottom:1px solid var(--rule);font:13px var(--face);color:var(--soft);padding:4px 0;cursor:pointer}
+  .lex-cat-sel:focus{outline:none;border-bottom-color:var(--ink)}
+  .lex-section-label{font-size:12px;color:var(--soft);font-style:italic;margin:22px 0 8px;display:block}
+  .lex-field{width:100%;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:14px 0;resize:vertical;outline:none;min-height:90px}
+  .lex-field:focus{border-color:var(--soft)}
+  .lex-actions{display:flex;gap:14px;align-items:center;margin-top:14px}
+  .lex-saved{font-size:12px;color:var(--soft);font-style:italic}
+  .lex-empty{padding:48px 0 24px;color:var(--soft);font-style:italic;font-size:16px}
+  .lex-rail-row{display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--rule) 65%,transparent)}
+  .lex-rail-row button:first-child{flex:1;min-width:0;background:none;border:0;text-align:left;color:var(--soft);padding:9px 0;font:inherit;cursor:pointer}
+  .lex-rail-row button:first-child:hover,.lex-rail-row button:first-child.on{color:var(--ink)}
+  .lex-rail-row button:first-child.on{font-weight:600}
+  .lex-rail-cat{display:block;font-size:11px;color:var(--soft);margin-bottom:1px}
+  .lex-rail-term{display:block;font-size:14px;line-height:1.3}
+  .lex-rail-delete{flex:0 0 auto;background:none;border:0;color:var(--soft);font-size:17px;line-height:1;padding:10px 2px;cursor:pointer;opacity:0;transition:opacity .15s}
+  .lex-rail-row:hover .lex-rail-delete,.lex-rail-row:focus-within .lex-rail-delete{opacity:.5}
+  .lex-rail-delete:hover{color:var(--ink);opacity:1}
+
   .book-edit{font-size:16px;margin-top:-2px}
   body.rail-hidden .workspace{grid-template-columns:0 minmax(0,1fr)}
   body.rail-hidden #spineRail{padding:0;overflow:hidden;border-right:0}
@@ -786,6 +844,7 @@ const BOOK2={"title": "A Second Summer — The Hollowing, book one", "data": {"s
 let ws={books:[],current:0};
 let selectedIdx=0;
 let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',lastBookTab='spine',lastBookIndex=0,filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,forgeSelectedId=null,forgeFocusId=null;
+let studioSection='forge',readingLogSelectedId=null,lexiconSelectedId=null;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -814,6 +873,10 @@ const words=t=>String(t||'').trim()?String(t).trim().split(/\s+/).length:0;
 const today=()=>new Date().toISOString().slice(0,10);
 function forgeList(){ws.forgeExercises=Array.isArray(ws.forgeExercises)?ws.forgeExercises:[];return ws.forgeExercises}
 function forgeId(){return 'forge-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)}
+function rlId(){return 'rl-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)}
+function lxId(){return 'lx-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)}
+function readingLogList(){ws.readingLog=Array.isArray(ws.readingLog)?ws.readingLog:[];return ws.readingLog}
+function lexiconList(){ws.lexicon=Array.isArray(ws.lexicon)?ws.lexicon:[];return ws.lexicon}
 function migrateForge(){
   ws.forgeExercises=Array.isArray(ws.forgeExercises)?ws.forgeExercises:[];
   ws.books.forEach(b=>{
@@ -897,7 +960,7 @@ async function dbSave(){
   writing=true;
   try{
     ws.books.forEach((b,i)=>{ if(!b.id) b.id='b'+(i+1) });
-    const payload={books:ws.books,current:ws.current,forgeExercises:ws.forgeExercises||[]};
+    const payload={books:ws.books,current:ws.current,forgeExercises:ws.forgeExercises||[],readingLog:ws.readingLog||[],lexicon:ws.lexicon||[]};
     await api('POST', payload);
     diag('save: '+Math.round(JSON.stringify(payload).length/1024)+' KB sent');
     return true;
@@ -914,7 +977,7 @@ async function snapshotSave(name){
   flush();
   ws.books[ws.current].data=db;
   migrateForge();
-  const workspace=structuredClone({books:ws.books,current:ws.current,forgeExercises:ws.forgeExercises});
+  const workspace=structuredClone({books:ws.books,current:ws.current,forgeExercises:ws.forgeExercises,readingLog:ws.readingLog||[],lexicon:ws.lexicon||[]});
   const clean=String(name||'').trim().slice(0,80);
   if(!clean) throw new Error('give the snapshot a name');
   return await api('POST',{action:'snapshot_save',name:clean,workspace});
@@ -1165,7 +1228,9 @@ function render(){
     const ms=document.querySelector('.top-ms'); if(ms) ms.style.display='none';
     const topForge2=document.getElementById('topForge'); if(topForge2) topForge2.textContent='< Return to Book';
     renderForgeRail();
-    renderDaily();
+    if(studioSection==='readingLog') renderReadingLogMain();
+    else if(studioSection==='lexicon') renderLexiconMain();
+    else renderDaily();
     return;
   }
   // If Forge previously replaced the rail, restore its normal DOM before
@@ -1254,13 +1319,13 @@ function renderTools(){
       tab=targetTab;
       document.body.classList.remove('forge-mode');
       forgeSelectedId=null;forgeFocusId=null;focusIdx=-1;selectedIdx=Math.max(0,Math.min(selectedIdx,Math.max(0,db.sections.length-1)));
-      query='';filter='all';bibleEditing=false;
+      query='';filter='all';bibleEditing=false;studioSection='forge';
       render();
     }else{
       lastBookIndex=ws.current;
       lastBookTab=(tab&&tab!=='forge')?tab:'spine';
       tab='forge';
-      forgeSelectedId=null;forgeFocusId=null;selectedIdx=-1;
+      forgeSelectedId=null;forgeFocusId=null;selectedIdx=-1;studioSection='forge';
       query='';
       render();
     }
@@ -1601,17 +1666,115 @@ function deleteForgeExercise(id){
   }
   save();renderDaily();
 }
+
+/* ---------- reading log ---------- */
+function newReadingLogEntry(){
+  const e={id:rlId(),title:'',author:'',status:'reading',steal:'',createdAt:new Date().toISOString()};
+  readingLogList().push(e);readingLogSelectedId=e.id;save();render();
+}
+function deleteReadingLogEntry(id){
+  const list=readingLogList(),idx=list.findIndex(x=>x.id===id);if(idx<0)return;
+  if(!confirm('Delete this entry?\n\nThis cannot be undone.'))return;
+  list.splice(idx,1);
+  if(readingLogSelectedId===id)readingLogSelectedId=list[0]?.id||null;
+  save();render();
+}
+function renderReadingLogMain(){
+  const v=$('#view');if(!v)return;
+  const list=readingLogList();
+  if(!list.length){v.innerHTML=`<div class="rl-stage"><p class="rl-empty">No books yet. Add one to start tracking what you're reading and what to steal.</p></div>`;return}
+  let e=list.find(x=>x.id===readingLogSelectedId)||list[0];readingLogSelectedId=e.id;
+  v.innerHTML=`<div class="rl-stage">
+    <input class="rl-book-title" id="rlTitle" value="${att(e.title)}" placeholder="Book title">
+    <div class="rl-author-row">
+      <input class="rl-author" id="rlAuthor" value="${att(e.author||'')}" placeholder="Author">
+      <select class="rl-status-sel" id="rlStatus">
+        <option value="reading"${e.status==='reading'?' selected':''}>Reading</option>
+        <option value="finished"${e.status==='finished'?' selected':''}>Finished</option>
+        <option value="abandoned"${e.status==='abandoned'?' selected':''}>Abandoned</option>
+      </select>
+    </div>
+    <span class="rl-steal-label">What I'm stealing — techniques, lines, structures worth borrowing</span>
+    <textarea class="rl-steal" id="rlSteal" placeholder="Write your observations here…">${esc(e.steal||'')}</textarea>
+    <div class="rl-actions"><span class="rl-saved" id="rlSaved">${e.steal||e.title?'Saved':'Nothing written yet'}</span></div>
+  </div>`;
+  const titleEl=$('#rlTitle'),authorEl=$('#rlAuthor'),statusEl=$('#rlStatus'),stealEl=$('#rlSteal'),savedEl=$('#rlSaved');
+  let timer=null;
+  const persist=()=>{e.title=titleEl.value;e.author=authorEl.value;e.status=statusEl.value;e.steal=stealEl.value;savedEl.textContent='Saved';save();renderForgeRail()};
+  const queue=()=>{savedEl.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};
+  titleEl.oninput=queue;authorEl.oninput=queue;statusEl.onchange=()=>persist();
+  stealEl.oninput=queue;stealEl.onblur=()=>{clearTimeout(timer);persist()};
+}
+
+/* ---------- lexicon ---------- */
+const LEX_CATEGORIES=['Voice','Pacing','Dialogue','POV','Structure','Imagery','Style','Syntax','Theme','Other'];
+function newLexiconEntry(){
+  const e={id:lxId(),term:'',category:'Voice',definition:'',example:'',notes:'',createdAt:new Date().toISOString()};
+  lexiconList().push(e);lexiconSelectedId=e.id;save();render();
+}
+function deleteLexiconEntry(id){
+  const list=lexiconList(),idx=list.findIndex(x=>x.id===id);if(idx<0)return;
+  if(!confirm('Delete this technique?\n\nThis cannot be undone.'))return;
+  list.splice(idx,1);
+  if(lexiconSelectedId===id)lexiconSelectedId=list[0]?.id||null;
+  save();render();
+}
+function renderLexiconMain(){
+  const v=$('#view');if(!v)return;
+  const list=lexiconList();
+  if(!list.length){v.innerHTML=`<div class="lex-stage"><p class="lex-empty">No techniques yet. Add one to start building your craft library.</p></div>`;return}
+  let e=list.find(x=>x.id===lexiconSelectedId)||list[0];lexiconSelectedId=e.id;
+  const catOpts=LEX_CATEGORIES.map(c=>`<option value="${att(c)}"${e.category===c?' selected':''}>${esc(c)}</option>`).join('');
+  v.innerHTML=`<div class="lex-stage">
+    <input class="lex-term" id="lxTerm" value="${att(e.term)}" placeholder="Technique name">
+    <div class="lex-cat-row">
+      <select class="lex-cat-sel" id="lxCat">${catOpts}</select>
+    </div>
+    <span class="lex-section-label">What it is</span>
+    <textarea class="lex-field" id="lxDef" placeholder="Define the technique in your own words…">${esc(e.definition||'')}</textarea>
+    <span class="lex-section-label">Example — a passage, sentence, or moment where you've seen it done well</span>
+    <textarea class="lex-field" id="lxEx" placeholder="Paste or write an example…">${esc(e.example||'')}</textarea>
+    <span class="lex-section-label">How I use it — your personal notes on applying this technique</span>
+    <textarea class="lex-field" id="lxNotes" placeholder="Notes on how you want to use this…">${esc(e.notes||'')}</textarea>
+    <div class="lex-actions"><span class="lex-saved" id="lxSaved">${e.definition||e.term?'Saved':'Nothing written yet'}</span></div>
+  </div>`;
+  const termEl=$('#lxTerm'),catEl=$('#lxCat'),defEl=$('#lxDef'),exEl=$('#lxEx'),notesEl=$('#lxNotes'),savedEl=$('#lxSaved');
+  let timer=null;
+  const persist=()=>{e.term=termEl.value;e.category=catEl.value;e.definition=defEl.value;e.example=exEl.value;e.notes=notesEl.value;savedEl.textContent='Saved';save();renderForgeRail()};
+  const queue=()=>{savedEl.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};
+  termEl.oninput=queue;catEl.onchange=()=>persist();
+  [defEl,exEl,notesEl].forEach(el=>{el.oninput=queue;el.onblur=()=>{clearTimeout(timer);persist()}});
+}
+
 function renderForgeRail(){
   const rail=$('#spineRail');
   if(!rail)return;
-  const all=forgeList().slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
-  const todayEntries=all.filter(x=>x.date===dailyToday());
-  const older=all.filter(x=>x.date!==dailyToday());
-  const row=x=>`<div class="forge-rail-row"><button type="button" data-forge-rail-id="${att(x.id)}" class="${x.id===forgeSelectedId?'on':''}"><span class="forge-rail-meta">${esc(formatDailyDate(x.date))}${x.completed?'<span class="forge-rail-complete">✓ Complete</span>':''}</span><span class="forge-rail-theme">${esc(x.theme)}</span></button><button type="button" class="forge-rail-delete" data-forge-rail-delete="${att(x.id)}" title="Delete exercise" aria-label="Delete exercise">×</button></div>`;
-  rail.innerHTML=`<div class="forge-rail-head"><h2 class="forge-rail-title">The Forge</h2><div class="forge-rail-sub">Exercises you've done</div></div>${todayEntries.length?`<div class="forge-rail-day">Today</div>${todayEntries.map(row).join('')}`:''}${older.length?`<div class="forge-rail-day">Previous</div>${older.map(row).join('')}`:''}<button type="button" class="btn forge-rail-add" id="forgeRailNew">+ Add another exercise</button>`;
-  rail.querySelectorAll('[data-forge-rail-id]').forEach(b=>b.onclick=()=>{forgeSelectedId=b.dataset.forgeRailId;renderDaily();renderForgeRail()});
-  rail.querySelectorAll('[data-forge-rail-delete]').forEach(b=>b.onclick=()=>deleteForgeExercise(b.dataset.forgeRailDelete));
-  const add=rail.querySelector('#forgeRailNew'); if(add) add.onclick=()=>newForgeExercise(dailyToday());
+  const nav=`<nav class="studio-nav"><button class="studio-tab${studioSection==='forge'?' on':''}" data-studio="forge">Forge</button><button class="studio-tab${studioSection==='readingLog'?' on':''}" data-studio="readingLog">Reading</button><button class="studio-tab${studioSection==='lexicon'?' on':''}" data-studio="lexicon">Lexicon</button></nav>`;
+  if(studioSection==='readingLog'){
+    const list=readingLogList().slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    const row=x=>`<div class="rl-rail-row"><button type="button" data-rl-id="${att(x.id)}" class="${x.id===readingLogSelectedId?'on':''}"><span class="rl-rail-meta">${esc(x.status||'reading')}</span><span class="rl-rail-title">${esc(x.title||'Untitled')}</span></button><button type="button" class="rl-rail-delete" data-rl-delete="${att(x.id)}" title="Delete" aria-label="Delete">×</button></div>`;
+    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Reading Log</h2><div class="forge-rail-sub">Books & what to steal</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="rlRailNew">+ Add book</button>`;
+    rail.querySelectorAll('[data-rl-id]').forEach(b=>b.onclick=()=>{readingLogSelectedId=b.dataset.rlId;renderReadingLogMain();renderForgeRail()});
+    rail.querySelectorAll('[data-rl-delete]').forEach(b=>b.onclick=()=>deleteReadingLogEntry(b.dataset.rlDelete));
+    const add=rail.querySelector('#rlRailNew');if(add)add.onclick=()=>newReadingLogEntry();
+  } else if(studioSection==='lexicon'){
+    const list=lexiconList().slice().sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''))||String(a.term||'').localeCompare(String(b.term||'')));
+    const row=x=>`<div class="lex-rail-row"><button type="button" data-lx-id="${att(x.id)}" class="${x.id===lexiconSelectedId?'on':''}"><span class="lex-rail-cat">${esc(x.category||'General')}</span><span class="lex-rail-term">${esc(x.term||'Untitled')}</span></button><button type="button" class="lex-rail-delete" data-lx-delete="${att(x.id)}" title="Delete" aria-label="Delete">×</button></div>`;
+    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Lexicon</h2><div class="forge-rail-sub">Craft techniques & tools</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="lxRailNew">+ Add technique</button>`;
+    rail.querySelectorAll('[data-lx-id]').forEach(b=>b.onclick=()=>{lexiconSelectedId=b.dataset.lxId;renderLexiconMain();renderForgeRail()});
+    rail.querySelectorAll('[data-lx-delete]').forEach(b=>b.onclick=()=>deleteLexiconEntry(b.dataset.lxDelete));
+    const add=rail.querySelector('#lxRailNew');if(add)add.onclick=()=>newLexiconEntry();
+  } else {
+    const all=forgeList().slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
+    const todayEntries=all.filter(x=>x.date===dailyToday());
+    const older=all.filter(x=>x.date!==dailyToday());
+    const row=x=>`<div class="forge-rail-row"><button type="button" data-forge-rail-id="${att(x.id)}" class="${x.id===forgeSelectedId?'on':''}"><span class="forge-rail-meta">${esc(formatDailyDate(x.date))}${x.completed?'<span class="forge-rail-complete">✓ Complete</span>':''}</span><span class="forge-rail-theme">${esc(x.theme)}</span></button><button type="button" class="forge-rail-delete" data-forge-rail-delete="${att(x.id)}" title="Delete exercise" aria-label="Delete exercise">×</button></div>`;
+    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">The Forge</h2><div class="forge-rail-sub">Exercises you've done</div></div>${todayEntries.length?`<div class="forge-rail-day">Today</div>${todayEntries.map(row).join('')}`:''}${older.length?`<div class="forge-rail-day">Previous</div>${older.map(row).join('')}`:''}<button type="button" class="btn forge-rail-add" id="forgeRailNew">+ Add another exercise</button>`;
+    rail.querySelectorAll('[data-forge-rail-id]').forEach(b=>b.onclick=()=>{forgeSelectedId=b.dataset.forgeRailId;renderDaily();renderForgeRail()});
+    rail.querySelectorAll('[data-forge-rail-delete]').forEach(b=>b.onclick=()=>deleteForgeExercise(b.dataset.forgeRailDelete));
+    const add=rail.querySelector('#forgeRailNew');if(add)add.onclick=()=>newForgeExercise(dailyToday());
+  }
+  rail.querySelectorAll('.studio-tab').forEach(b=>b.onclick=()=>{studioSection=b.dataset.studio;render()});
 }
 
 function renderDaily(){
