@@ -100,6 +100,11 @@
   .forge-response{width:100%;min-height:420px;box-sizing:border-box;resize:vertical;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:16px/1.75 Palatino,Georgia,serif;padding:20px 0;outline:none}
   .forge-response:focus{border-color:var(--soft)}
   .forge-add-row{margin-top:8px;padding-top:18px;border-top:1px solid var(--rule)}
+  .forge-stats-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+  .forge-wc{font-size:13px;color:var(--soft);font-style:italic}
+  .forge-sw{display:flex;align-items:center;gap:10px}
+  .forge-sw-display{font-size:14px;color:var(--soft);font-family:ui-monospace,Menlo,monospace;min-width:3.8ch;letter-spacing:.03em}
+  .forge-sw-display.running{color:var(--lantern)}
   @media(max-width:640px){body.forge-mode .workspace{grid-template-columns:1fr}.forge-stage{padding-top:28px}.forge-exercise-head{gap:10px}.forge-exercise-theme{font-size:24px}}
 
   /* ---- studio nav (inside the forge rail) ---- */
@@ -845,6 +850,7 @@ let ws={books:[],current:0};
 let selectedIdx=0;
 let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',lastBookTab='spine',lastBookIndex=0,filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,forgeSelectedId=null,forgeFocusId=null;
 let studioSection='forge',readingLogSelectedId=null,lexiconSelectedId=null;
+let forgeSwInterval=null,forgeSwElapsed=0,forgeSwRunning=false;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -1319,7 +1325,7 @@ function renderTools(){
       tab=targetTab;
       document.body.classList.remove('forge-mode');
       forgeSelectedId=null;forgeFocusId=null;focusIdx=-1;selectedIdx=Math.max(0,Math.min(selectedIdx,Math.max(0,db.sections.length-1)));
-      query='';filter='all';bibleEditing=false;studioSection='forge';
+      query='';filter='all';bibleEditing=false;studioSection='forge';swReset();
       render();
     }else{
       lastBookIndex=ws.current;
@@ -1777,25 +1783,52 @@ function renderForgeRail(){
   rail.querySelectorAll('.studio-tab').forEach(b=>b.onclick=()=>{studioSection=b.dataset.studio;render()});
 }
 
+function swFmt(s){const m=Math.floor(s/60);return m+':'+(String(s%60).padStart(2,'0'))}
+function swStop(){clearInterval(forgeSwInterval);forgeSwInterval=null;forgeSwRunning=false}
+function swReset(){swStop();forgeSwElapsed=0}
 function renderDaily(){
   const v=$('#view');if(!v)return;
+  // reset stopwatch when switching exercises
+  swReset();
   normalizeForgeNumbers();
   const date=dailyToday();let entries=forgeEntriesForDate(date);if(!entries.length){ensureDailyEntry(date);entries=forgeEntriesForDate(date)}
   let e=entries.find(x=>x.id===forgeSelectedId)||entries[entries.length-1];forgeSelectedId=e.id;
+  const initWc=e.response?e.response.trim().split(/\s+/).filter(Boolean).length:0;
   v.innerHTML=`<div class="forge-stage">
     <div class="forge-exercise-kicker">${esc(formatDailyDate(date))}</div>
     <div class="forge-exercise-head"><h2 class="forge-exercise-theme">${esc(e.theme)}</h2><button class="btn forge-focus-btn" id="forgeFocus">⛶ Focus</button></div>
     <p class="forge-exercise-prompt">${esc(e.prompt)}</p>
     <textarea id="dailyResponse" class="forge-response" placeholder="Write here…">${esc(e.response||'')}</textarea>
+    <div class="forge-stats-row">
+      <span class="forge-wc" id="forgeWc">${initWc} word${initWc===1?'':'s'}</span>
+      <div class="forge-sw">
+        <span class="forge-sw-display" id="forgeSwDisplay">${swFmt(forgeSwElapsed)}</span>
+        <button class="btn" id="forgeSwToggle">Start</button>
+        <button class="btn" id="forgeSwReset">Reset</button>
+      </div>
+    </div>
     <div class="daily-actions"><button class="btn primary" id="dailyComplete">${e.completed?'Completed ✓':'Mark complete'}</button><span class="daily-saved" id="dailySaved">${e.response?'Saved':'Nothing written yet'}</span></div>
-    
   </div>`;
   renderForgeRail();
-  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete'),focusBtn=$('#forgeFocus');let timer=null;
+  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete'),focusBtn=$('#forgeFocus');
+  const wcEl=$('#forgeWc'),swDisplay=$('#forgeSwDisplay'),swToggle=$('#forgeSwToggle'),swResetBtn=$('#forgeSwReset');
+  let timer=null;
   const persist=()=>{e.response=ta.value;saveLabel.textContent='Saved just now';save()};
-  ta.oninput=()=>{e.response=ta.value;saveLabel.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};ta.onblur=()=>{clearTimeout(timer);persist()};
+  ta.oninput=()=>{
+    e.response=ta.value;saveLabel.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500);
+    const wc=ta.value.trim()?ta.value.trim().split(/\s+/).filter(Boolean).length:0;
+    wcEl.textContent=wc+' word'+(wc===1?'':'s');
+  };
+  ta.onblur=()=>{clearTimeout(timer);persist()};
   complete.onclick=()=>{e.response=ta.value;e.completed=!e.completed;save();renderDaily()};
   focusBtn.onclick=()=>openForgeFocus(e);
+  const tickSw=()=>{forgeSwElapsed++;swDisplay.textContent=swFmt(forgeSwElapsed)};
+  const updateSwBtn=()=>{swToggle.textContent=forgeSwRunning?'Stop':'Start';swDisplay.classList.toggle('running',forgeSwRunning)};
+  swToggle.onclick=()=>{
+    if(forgeSwRunning){swStop()}else{forgeSwRunning=true;forgeSwInterval=setInterval(tickSw,1000)}
+    updateSwBtn();
+  };
+  swResetBtn.onclick=()=>{swReset();swDisplay.textContent=swFmt(0);swDisplay.classList.remove('running');swToggle.textContent='Start'};
 }
 
 /* ---------- focus mode ---------- */
