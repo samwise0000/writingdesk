@@ -84,6 +84,25 @@
   .manuscript-tab{margin-left:auto;color:var(--lantern);font-weight:600;border-bottom-color:transparent}
   .manuscript-tab:hover,.manuscript-tab.on{color:var(--lantern);border-bottom-color:var(--lantern)}
 
+  .daily-stage{max-width:820px;padding:28px 0 70px}
+  .daily-kicker{font-size:12px;color:var(--soft);font-style:italic;letter-spacing:.03em;margin-bottom:9px}
+  .daily-title{font-family:Georgia,serif;font-size:28px;font-weight:400;line-height:1.15;margin:0 0 8px}
+  .daily-theme{font-size:15px;color:var(--lantern);margin:0 0 24px}
+  .daily-prompt{font-family:Palatino,Georgia,serif;font-size:18px;line-height:1.6;max-width:66ch;margin:0 0 22px}
+  .daily-response{width:100%;min-height:360px;box-sizing:border-box;resize:vertical;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:16px/1.75 Palatino,Georgia,serif;padding:20px 0;outline:none}
+  .daily-response:focus{border-color:var(--soft)}
+  .daily-actions{display:flex;gap:16px;align-items:center;margin:18px 0 42px}
+  .daily-saved{font-size:12px;color:var(--soft);font-style:italic}
+  .daily-history{border-top:1px solid var(--rule);padding-top:24px}
+  .daily-history h3{font-size:13px;font-weight:600;color:var(--soft);margin:0 0 12px}
+  .daily-history-row{display:flex;align-items:baseline;gap:14px;padding:9px 0;border-bottom:1px solid color-mix(in srgb,var(--rule) 65%,transparent)}
+  .daily-history-row button{background:none;border:0;padding:0;color:var(--soft);font:inherit;text-align:left;cursor:pointer}
+  .daily-history-row button:hover{color:var(--ink)}
+  .daily-history-date{flex:0 0 105px;font-size:12px;color:var(--soft)}
+  .daily-history-theme{font-size:14px}
+  .daily-complete{color:var(--lantern)!important}
+  @media(max-width:640px){.daily-stage{padding-top:18px}.daily-title{font-size:24px}.daily-response{min-height:300px}}
+
   /* ---- three-panel workspace ---- */
   .workspace{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100dvh - 81px)}
   #spineRail{border-right:1px solid var(--rule);background:var(--paper);min-width:0;overflow:auto;padding:0 22px 80px;position:relative}
@@ -381,6 +400,7 @@
       <button class="tab" data-t="gloss">Glossary</button>
       <button class="tab" data-t="bible">Bible</button>
       <button class="tab" data-t="prog">Progress</button>
+      <button class="tab" data-t="daily">Daily Practice</button>
       <button class="tab manuscript-tab" id="manuscriptTab" type="button">Manuscript</button>
     </nav>
     <div id="spineList"></div>
@@ -722,7 +742,7 @@ const BOOK2={"title": "A Second Summer — The Hollowing, book one", "data": {"s
 
 let ws={books:[],current:0};
 let selectedIdx=0;
-let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true;
+let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{},dailyExercises:[]},tab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,dailyDate=null;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -951,10 +971,10 @@ function switchBook(i){
   ws.current=i;db=ws.books[i].data;
   db.sections=(db.sections||[]).map(x=>({text:'',scratch:'',status:(x.text&&x.text.trim())?'drafted':'outline',...x}));
   normalizeParts(ws.books[ws.current]);
-  db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];
+  db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];db.dailyExercises=db.dailyExercises||[];
   db.meta=db.meta||{target:130000,log:{}};db.meta.log=db.meta.log||{};
   if(db.meta.log[today()]===undefined)db.meta.log[today()]=totalWords();
-  tab='spine';filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;
+  tab='spine';filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;dailyDate=null;dailyDate=null;
   save();render()
 }
 
@@ -970,6 +990,7 @@ function adopt(raw){
   db.cast=db.cast||structuredClone(CAST);
   db.notes=db.notes||structuredClone(NOTES);
   db.gloss=db.gloss||[];
+  db.dailyExercises=db.dailyExercises||[];
   if(db.bible===undefined)db.bible='';
   db.meta=db.meta||{target:130000,log:{}};
   db.meta.log=db.meta.log||{};
@@ -1059,7 +1080,7 @@ function render(){
   }
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   renderTools();
-  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg})[tab]();
+  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg,daily:renderDaily})[tab]();
   renderMs()
 }
 function paintWaterline(){
@@ -1085,6 +1106,8 @@ function renderTools(){
     $('#partsBtn').onclick=()=>openParts();
     $('#q').oninput=e=>{query=e.target.value.toLowerCase().trim();renderSpine()};
     t.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
+  } else if(tab==='daily'){
+    t.innerHTML=`<span class="btn on">One exercise a day</span>`;
   } else if(tab==='cast'){
     t.innerHTML=`<button class="btn primary" id="addCast">Add character</button>${common}`;
     $('#addCast').onclick=()=>{db.cast.unshift({name:'New character',group:'Secondary',world:'Myth',aka:'',role:'',note:''});save();render()};
@@ -1355,6 +1378,59 @@ function renderGloss(){
     })
   });
   if(!v.children.length)v.innerHTML='<p class="part">No terms match.</p>'
+}
+
+/* ---------- daily practice ---------- */
+const DAILY_THEMES=[
+  [2,'World-Building Without Exposition'],[3,'Emotion Without Naming It'],[4,'The Ordinary Before the Extra-Ordinary'],
+  [5,'Metaphor and Imagery'],[6,'Sensory Writing'],[7,'Epic / Awe-Inspiring Moments'],[8,'Describing an Environment'],
+  [9,'Mystery / Foreshadowing'],[10,'Sadness / Grief'],[11,'The Reversal'],[12,'The Choice'],[13,'The Aftermath'],
+  [14,'The Reveal'],[15,'Character Voice'],[16,'Contradiction'],[17,'Subtext'],[18,'Villain / Morally Complicated Character'],
+  [19,'Action / Combat'],[20,'Internal Monologue'],[21,'Making Character Sympathetic'],[22,'Making Character Intimidating'],
+  [23,'Introducing a Character'],[24,'Heated Dialogue']
+];
+const DAILY_PROMPTS={
+'World-Building Without Exposition':'Write 500 words in which a character moves through an unfamiliar place. Reveal the rules, history, culture, or tensions of the world only through what the character notices, does, misunderstands, or is told naturally. Do not explain the world directly.',
+'Emotion Without Naming It':'Write a scene in which a character experiences a strong emotion but never name the emotion. Let the reader infer it entirely from physical reactions, choices, thoughts, dialogue, and what the character avoids.',
+'The Ordinary Before the Extra-Ordinary':'Write an ordinary scene in meticulous detail for 400–600 words. Then introduce one impossible or extraordinary thing without changing the prose style or having anyone explain it. Keep the characters grounded in the ordinary.',
+'Metaphor and Imagery':'Describe a character, object, or moment using three different metaphors. Then write a short scene in which only one of those metaphors survives and becomes part of the scene’s emotional meaning.',
+'Sensory Writing':'Write 500 words anchored in all five senses. Choose a setting you know well and make at least one sensory detail unexpectedly important to the character.',
+'Epic / Awe-Inspiring Moments':'Write the moment a character sees something vast enough to make them feel small. Do not rely on words like beautiful, enormous, magnificent, or awe-inspiring. Make the scale felt through the character’s perception.',
+'Describing an Environment':'Describe a place as if the place itself is telling the reader what has happened there. Include at least five concrete details, but never state the history outright.',
+'Mystery / Foreshadowing':'Write a scene containing one detail that seems insignificant now but would become disturbing in hindsight. Do not call attention to it or explain its significance.',
+'Sadness / Grief':'Write a character doing something completely mundane while carrying fresh grief. Never have them think or say that they are sad, grieving, heartbroken, or devastated.',
+'The Reversal':'Write a scene that begins with one character clearly in control. Halfway through, reverse the power dynamic without announcing the reversal. Let the reader discover it through behavior.',
+'The Choice':'Give a character two choices, both of which cost them something they genuinely value. Write the scene up to the instant they choose, then write the first 200 words after the choice.',
+'The Aftermath':'Skip the dramatic event itself. Write the 600 words immediately after it, focusing on the physical evidence, altered relationships, and small decisions that reveal what happened.',
+'The Reveal':'Write a reveal that changes the meaning of something the reader has already seen. The new information should be simple enough to state in one sentence but powerful enough to reframe the earlier scene.',
+'Character Voice':'Write 400 words of dialogue from a character who has a very distinct way of speaking. Then write the same character’s private thoughts about the exact same subject. Make the difference revealing.',
+'Contradiction':'Give a character two beliefs that cannot comfortably coexist. Write a scene in which they act according to both beliefs without noticing the contradiction themselves.',
+'Subtext':'Write a conversation about something trivial—food, weather, errands, a broken object—while the characters are actually arguing about something much more important. Never state the real argument.',
+'Villain / Morally Complicated Character':'Write a scene in which a morally compromised character does something genuinely kind. Do not excuse their other actions. Let the kindness complicate the reader’s understanding rather than resolve it.',
+'Action / Combat':'Write 500 words of action where every movement changes the situation. Keep sentences concrete and spatially clear. Avoid pausing to explain what the characters are feeling until the action itself reveals it.',
+'Internal Monologue':'Write 500 words of uninterrupted internal thought as a character prepares to do something they have been avoiding. Let the mind contradict itself, circle the subject, rationalize, and finally become honest.',
+'Making Character Sympathetic':'Write a scene that makes the reader care about a character without giving them a tragic backstory. Show one specific choice that costs the character something and benefits someone else.',
+'Making Character Intimidating':'Write a character entering a room and making everyone else uncomfortable without threatening anyone, raising their voice, or behaving violently. Make the intimidation come from control, knowledge, presence, or restraint.',
+'Introducing a Character':'Introduce a character through action rather than description. By the end of 500 words, the reader should understand something important about their personality without being directly told what kind of person they are.',
+'Heated Dialogue':'Write a heated argument in which neither character says exactly what they mean. Keep the dialogue fast and specific. Give each character one thing they desperately want the other person to understand.'
+};
+function dailyToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dailyDayIndex(date){const a=new Date('2024-01-01T00:00:00'),b=new Date(date+'T00:00:00');return Math.floor((b-a)/86400000)}
+function ensureDailyEntry(date=today()){
+  db.dailyExercises=db.dailyExercises||[];
+  let e=db.dailyExercises.find(x=>x.date===date);
+  if(!e){const [number,theme]=DAILY_THEMES[((dailyDayIndex(date)%DAILY_THEMES.length)+DAILY_THEMES.length)%DAILY_THEMES.length];e={date,number,theme,prompt:DAILY_PROMPTS[theme],response:'',completed:false,createdAt:new Date().toISOString()};db.dailyExercises.push(e);db.dailyExercises.sort((a,b)=>String(b.date).localeCompare(String(a.date)));save()}
+  return e
+}
+function formatDailyDate(v){try{return new Date(v+'T00:00:00').toLocaleDateString([], {weekday:'short',month:'short',day:'numeric',year:'numeric'})}catch(e){return v}}
+function renderDaily(){
+  const v=$('#view');if(!v)return;const date=dailyDate||dailyToday(),e=ensureDailyEntry(date);
+  v.innerHTML=`<div class="daily-stage"><div class="daily-kicker">Daily writing exercise · ${esc(formatDailyDate(e.date))}</div><h2 class="daily-title">Exercise ${e.number}</h2><p class="daily-theme">${esc(e.theme)}</p><p class="daily-prompt">${esc(e.prompt)}</p><textarea id="dailyResponse" class="daily-response" placeholder="Write here…">${esc(e.response||'')}</textarea><div class="daily-actions"><button class="btn primary" id="dailyComplete">${e.completed?'Completed ✓':'Mark complete'}</button><span class="daily-saved" id="dailySaved">${e.response?'Saved':'Nothing written yet'}</span></div><div class="daily-history"><h3>Previous exercises</h3>${db.dailyExercises.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<div class="daily-history-row"><span class="daily-history-date">${esc(formatDailyDate(x.date))}</span><button data-daily-date="${att(x.date)}" class="${x.completed?'daily-complete':''}">${esc(x.theme)}${x.completed?' ✓':''}</button></div>`).join('')}</div></div>`;
+  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete');let timer=null;
+  const persist=()=>{e.response=ta.value;saveLabel.textContent='Saved just now';save()};
+  ta.oninput=()=>{e.response=ta.value;saveLabel.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};ta.onblur=()=>{clearTimeout(timer);persist()};
+  complete.onclick=()=>{e.response=ta.value;e.completed=!e.completed;save();renderDaily()};
+  v.querySelectorAll('[data-daily-date]').forEach(b=>b.onclick=()=>{e.response=ta.value;save();dailyDate=b.dataset.dailyDate;renderDaily()});
 }
 
 /* ---------- focus mode ---------- */
