@@ -149,7 +149,7 @@
   .lex-cat-sel{background:none;border:0;border-bottom:1px solid var(--rule);font:13px var(--face);color:var(--soft);padding:4px 0;cursor:pointer}
   .lex-cat-sel:focus{outline:none;border-bottom-color:var(--ink)}
   .lex-section-label{font-size:12px;color:var(--soft);font-style:italic;margin:22px 0 8px;display:block}
-  .lex-field{width:100%;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:14px 0;resize:vertical;outline:none;min-height:320px;margin-top:18px}
+  .lex-field{width:100%;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:14px 0;resize:none;outline:none;height:calc(100dvh - 340px);min-height:240px;margin-top:18px}
   .lex-field:focus{border-color:var(--soft)}
   .lex-actions{display:flex;gap:14px;align-items:center;margin-top:14px}
   .lex-saved{font-size:12px;color:var(--soft);font-style:italic}
@@ -1725,6 +1725,26 @@ function deleteLexiconEntry(id){
   if(lexiconSelectedId===id)lexiconSelectedId=list[0]?.id||null;
   save();render();
 }
+function importLexiconFromBook(){
+  const book=ws.books.find(b=>b.title&&b.title.toLowerCase().includes('lexicon'));
+  if(!book){say('No book with "Lexicon" in the title found.');return}
+  const sections=(book.data&&book.data.sections)||[];
+  if(!sections.length){say('That book has no sections.');return}
+  const list=lexiconList();
+  let added=0;
+  sections.forEach(s=>{
+    if(!s.title)return;
+    if(list.some(x=>x.term&&x.term.toLowerCase()===s.title.toLowerCase()))return;
+    const partLower=(s.part||'').toLowerCase();
+    const cat=LEX_CATEGORIES.find(c=>partLower.includes(c.toLowerCase()))||'Other';
+    const body=[s.synopsis,richPlain(s.text||'').trim()].filter(Boolean).join('\n\n');
+    list.push({id:lxId(),term:s.title,category:cat,notes:body,createdAt:new Date().toISOString()});
+    added++;
+  });
+  if(!added){say('All sections already imported.');return}
+  lexiconSelectedId=list[list.length-added]?.id||null;
+  save();render();say(`Imported ${added} technique${added===1?'':'s'} from "${book.title}"`);
+}
 function renderLexiconMain(){
   const v=$('#view');if(!v)return;
   const list=lexiconList();
@@ -1764,10 +1784,11 @@ function renderForgeRail(){
   } else if(studioSection==='lexicon'){
     const list=lexiconList().slice().sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''))||String(a.term||'').localeCompare(String(b.term||'')));
     const row=x=>`<div class="lex-rail-row"><button type="button" data-lx-id="${att(x.id)}" class="${x.id===lexiconSelectedId?'on':''}"><span class="lex-rail-cat">${esc(x.category||'General')}</span><span class="lex-rail-term">${esc(x.term||'Untitled')}</span></button><button type="button" class="lex-rail-delete" data-lx-delete="${att(x.id)}" title="Delete" aria-label="Delete">×</button></div>`;
-    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Lexicon</h2><div class="forge-rail-sub">Craft techniques & tools</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="lxRailNew">+ Add technique</button>`;
+    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Lexicon</h2><div class="forge-rail-sub">Craft techniques & tools</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="lxRailNew">+ Add technique</button><button type="button" class="btn forge-rail-add" id="lxRailImport" style="margin-top:6px;color:var(--soft)">↓ Import from book</button>`;
     rail.querySelectorAll('[data-lx-id]').forEach(b=>b.onclick=()=>{lexiconSelectedId=b.dataset.lxId;renderLexiconMain();renderForgeRail()});
     rail.querySelectorAll('[data-lx-delete]').forEach(b=>b.onclick=()=>deleteLexiconEntry(b.dataset.lxDelete));
     const add=rail.querySelector('#lxRailNew');if(add)add.onclick=()=>newLexiconEntry();
+    const imp=rail.querySelector('#lxRailImport');if(imp)imp.onclick=()=>importLexiconFromBook();
   } else {
     const all=forgeList().slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
     const todayEntries=all.filter(x=>x.date===dailyToday());
