@@ -61,7 +61,7 @@
   .sub{color:var(--soft);font-size:15.5px;max-width:52ch;margin:0}
   .title-row,.sub,.legend{display:none}
   .top-ms{font-size:18px!important;padding:5px 7px!important;line-height:1}
-  .header-forge{background:none;border:0;color:var(--lantern);font:600 13px/1.2 Georgia,serif;letter-spacing:.02em;cursor:pointer;padding:6px 8px;margin-left:8px}
+  .header-forge{background:none;border:0;color:var(--lantern);font:600 13px/1.2 Georgia,serif;letter-spacing:.02em;cursor:pointer;padding:6px 8px;margin-left:auto}
   .header-forge:hover{color:var(--ink)}
   body.forge-mode .book-title-group,
   body.forge-mode .crumb,
@@ -88,6 +88,8 @@
   .forge-rail-delete{flex:0 0 auto;background:none;border:0;color:var(--soft);font-size:17px;line-height:1;padding:10px 2px;cursor:pointer;opacity:0;transition:opacity .15s}
   .forge-rail-row:hover .forge-rail-delete,.forge-rail-row:focus-within .forge-rail-delete{opacity:.5}
   .forge-rail-delete:hover{color:var(--ink);opacity:1}
+  .forge-rail-complete{color:var(--lantern);font-size:11px;font-weight:600;margin-left:6px}
+  .forge-rail-add{margin-top:18px;width:100%;text-align:left}
   .forge-stage{width:100%;max-width:900px;margin:0;padding:54px 0 90px}
   .forge-exercise-kicker{font-size:12px;color:var(--soft);letter-spacing:.03em;margin:0 0 10px}
   .forge-exercise-head{display:flex;align-items:flex-start;gap:18px;margin:0 0 16px}
@@ -782,7 +784,7 @@ const BOOK2={"title": "A Second Summer — The Hollowing, book one", "data": {"s
 
 let ws={books:[],current:0};
 let selectedIdx=0;
-let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',lastBookTab='spine',filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,forgeSelectedId=null,forgeFocusId=null;
+let db={sections:[],cast:[],notes:[],gloss:[],bible:'',meta:{}},tab='spine',lastBookTab='spine',lastBookIndex=0,filter='all',query='',focusIdx=-1,bibleEditing=false,infoCollapsed=false,focusSynCollapsed=true,forgeSelectedId=null,forgeFocusId=null;
 function partNames(sections){
   const out=[];
   (sections||[]).forEach(s=>{const p=String(s.part||'').trim();if(p&&!out.includes(p))out.push(p)});
@@ -1029,7 +1031,7 @@ function switchBook(i){
   db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];migrateForge();
   db.meta=db.meta||{target:130000,log:{}};db.meta.log=db.meta.log||{};
   if(db.meta.log[today()]===undefined)db.meta.log[today()]=totalWords();
-  tab='spine';lastBookTab='spine';filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;forgeSelectedId=null,forgeFocusId=null;
+  tab='spine';lastBookTab='spine';lastBookIndex=ws.current;filter='all';query='';focusIdx=-1;selectedIdx=0;bibleEditing=false;forgeSelectedId=null,forgeFocusId=null;
   save();render()
 }
 
@@ -1213,17 +1215,21 @@ function renderTools(){
   const msBtn=document.getElementById('manuscriptTab');
   if(msBtn) msBtn.onclick=()=>openManuscript();
   const topMs=document.getElementById('topManuscript'); if(topMs) topMs.onclick=()=>openManuscript();
-  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Back to book':'The Forge';topForge.onclick=()=>{
+  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Return to Book':'The Forge';topForge.onclick=()=>{
     if(tab==='forge'){
-      tab=lastBookTab||'spine';
-      selectedIdx=Math.max(0,Math.min(selectedIdx,Math.max(0,db.sections.length-1)));
+      const target=(Number.isInteger(lastBookIndex)&&lastBookIndex>=0&&lastBookIndex<ws.books.length)?lastBookIndex:0;
+      const targetTab=lastBookTab||'spine';
+      switchBook(target);
+      tab=targetTab;
+      render();
     }else{
-      lastBookTab=tab;
+      lastBookIndex=ws.current;
+      lastBookTab=tab||'spine';
       tab='forge';
       forgeSelectedId=null;forgeFocusId=null;selectedIdx=-1;
+      query='';
+      render();
     }
-    query='';
-    render();
   }};
   const menu=document.getElementById('menuBtn'); if(menu) menu.onclick=()=>document.body.classList.toggle('rail-hidden');
 }
@@ -1553,7 +1559,7 @@ function newForgeExercise(date=dailyToday()){
 function deleteForgeExercise(id){
   const list=forgeList(),idx=list.findIndex(x=>x.id===id);if(idx<0)return;
   const e=list[idx];
-  if(!confirm(`Delete Exercise ${e.number} — ${e.theme}?\n\nThis cannot be undone.`))return;
+  if(!confirm(`Delete ${e.theme}?\n\nThis cannot be undone.`))return;
   list.splice(idx,1);
   if(forgeSelectedId===id){
     const ordered=list.slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
@@ -1567,10 +1573,11 @@ function renderForgeRail(){
   const all=forgeList().slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
   const todayEntries=all.filter(x=>x.date===dailyToday());
   const older=all.filter(x=>x.date!==dailyToday());
-  const row=x=>`<div class="forge-rail-row"><button type="button" data-forge-rail-id="${att(x.id)}" class="${x.id===forgeSelectedId?'on':''}"><span class="forge-rail-meta">Exercise ${x.number} · ${esc(formatDailyDate(x.date))}${x.completed?' · Complete':''}</span><span class="forge-rail-theme">${esc(x.theme)}</span></button><button type="button" class="forge-rail-delete" data-forge-rail-delete="${att(x.id)}" title="Delete exercise" aria-label="Delete exercise">×</button></div>`;
-  rail.innerHTML=`<div class="forge-rail-head"><h2 class="forge-rail-title">The Forge</h2><div class="forge-rail-sub">Exercises you've done</div></div>${todayEntries.length?`<div class="forge-rail-day">Today</div>${todayEntries.map(row).join('')}`:''}${older.length?`<div class="forge-rail-day">Previous</div>${older.map(row).join('')}`:''}`;
+  const row=x=>`<div class="forge-rail-row"><button type="button" data-forge-rail-id="${att(x.id)}" class="${x.id===forgeSelectedId?'on':''}"><span class="forge-rail-meta">${esc(formatDailyDate(x.date))}${x.completed?'<span class="forge-rail-complete">✓ Complete</span>':''}</span><span class="forge-rail-theme">${esc(x.theme)}</span></button><button type="button" class="forge-rail-delete" data-forge-rail-delete="${att(x.id)}" title="Delete exercise" aria-label="Delete exercise">×</button></div>`;
+  rail.innerHTML=`<div class="forge-rail-head"><h2 class="forge-rail-title">The Forge</h2><div class="forge-rail-sub">Exercises you've done</div></div>${todayEntries.length?`<div class="forge-rail-day">Today</div>${todayEntries.map(row).join('')}`:''}${older.length?`<div class="forge-rail-day">Previous</div>${older.map(row).join('')}`:''}<button type="button" class="btn forge-rail-add" id="forgeRailNew">+ Add another exercise</button>`;
   rail.querySelectorAll('[data-forge-rail-id]').forEach(b=>b.onclick=()=>{forgeSelectedId=b.dataset.forgeRailId;renderDaily();renderForgeRail()});
   rail.querySelectorAll('[data-forge-rail-delete]').forEach(b=>b.onclick=()=>deleteForgeExercise(b.dataset.forgeRailDelete));
+  const add=rail.querySelector('#forgeRailNew'); if(add) add.onclick=()=>newForgeExercise(dailyToday());
 }
 
 function renderDaily(){
@@ -1579,19 +1586,18 @@ function renderDaily(){
   const date=dailyToday();let entries=forgeEntriesForDate(date);if(!entries.length){ensureDailyEntry(date);entries=forgeEntriesForDate(date)}
   let e=entries.find(x=>x.id===forgeSelectedId)||entries[entries.length-1];forgeSelectedId=e.id;
   v.innerHTML=`<div class="forge-stage">
-    <div class="forge-exercise-kicker">Exercise ${e.number} · ${esc(formatDailyDate(date))}</div>
+    <div class="forge-exercise-kicker">${esc(formatDailyDate(date))}</div>
     <div class="forge-exercise-head"><h2 class="forge-exercise-theme">${esc(e.theme)}</h2><button class="btn forge-focus-btn" id="forgeFocus">⛶ Focus</button></div>
     <p class="forge-exercise-prompt">${esc(e.prompt)}</p>
     <textarea id="dailyResponse" class="forge-response" placeholder="Write here…">${esc(e.response||'')}</textarea>
     <div class="daily-actions"><button class="btn primary" id="dailyComplete">${e.completed?'Completed ✓':'Mark complete'}</button><span class="daily-saved" id="dailySaved">${e.response?'Saved':'Nothing written yet'}</span></div>
-    <div class="forge-add-row"><button class="btn forge-new" id="forgeNew">+ Add another exercise</button></div>
+    
   </div>`;
   renderForgeRail();
-  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete'),fresh=$('#forgeNew'),focusBtn=$('#forgeFocus');let timer=null;
+  const ta=$('#dailyResponse'),saveLabel=$('#dailySaved'),complete=$('#dailyComplete'),focusBtn=$('#forgeFocus');let timer=null;
   const persist=()=>{e.response=ta.value;saveLabel.textContent='Saved just now';save()};
   ta.oninput=()=>{e.response=ta.value;saveLabel.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};ta.onblur=()=>{clearTimeout(timer);persist()};
   complete.onclick=()=>{e.response=ta.value;e.completed=!e.completed;save();renderDaily()};
-  fresh.onclick=()=>{e.response=ta.value;save();newForgeExercise(date)};
   focusBtn.onclick=()=>openForgeFocus(e);
 }
 
@@ -1624,7 +1630,7 @@ function openForgeFocus(e){
   if(!e)return;
   forgeFocusId=e.id;focusIdx=-1;
   $('#ftitle').textContent=e.theme;
-  $('#fmeta').textContent=`Exercise ${e.number} · ${formatDailyDate(e.date)}`;
+  $('#fmeta').textContent=formatDailyDate(e.date);
   $('#fsynhead').textContent='Prompt';
   $('#fsynsetting').textContent='';
   $('#fsynsep').style.display='none';
