@@ -149,7 +149,7 @@
   .lex-cat-sel{background:none;border:0;border-bottom:1px solid var(--rule);font:13px var(--face);color:var(--soft);padding:4px 0;cursor:pointer}
   .lex-cat-sel:focus{outline:none;border-bottom-color:var(--ink)}
   .lex-section-label{font-size:12px;color:var(--soft);font-style:italic;margin:22px 0 8px;display:block}
-  .lex-field{width:100%;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:14px 0;resize:vertical;outline:none;min-height:90px}
+  .lex-field{width:100%;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font:16px/1.75 Palatino,Georgia,serif;color:var(--ink);padding:14px 0;resize:vertical;outline:none;min-height:320px;margin-top:18px}
   .lex-field:focus{border-color:var(--soft)}
   .lex-actions{display:flex;gap:14px;align-items:center;margin-top:14px}
   .lex-saved{font-size:12px;color:var(--soft);font-style:italic}
@@ -1715,7 +1715,7 @@ function renderReadingLogMain(){
 /* ---------- lexicon ---------- */
 const LEX_CATEGORIES=['Voice','Pacing','Dialogue','POV','Structure','Imagery','Style','Syntax','Theme','Other'];
 function newLexiconEntry(){
-  const e={id:lxId(),term:'',category:'Voice',definition:'',example:'',notes:'',createdAt:new Date().toISOString()};
+  const e={id:lxId(),term:'',category:'Voice',notes:'',createdAt:new Date().toISOString()};
   lexiconList().push(e);lexiconSelectedId=e.id;save();render();
 }
 function deleteLexiconEntry(id){
@@ -1730,26 +1730,24 @@ function renderLexiconMain(){
   const list=lexiconList();
   if(!list.length){v.innerHTML=`<div class="lex-stage"><p class="lex-empty">No techniques yet. Add one to start building your craft library.</p></div>`;return}
   let e=list.find(x=>x.id===lexiconSelectedId)||list[0];lexiconSelectedId=e.id;
+  // migrate old split fields into notes
+  if(!e.notes&&(e.definition||e.example)){
+    e.notes=[e.definition,e.example].filter(Boolean).join('\n\n');
+    delete e.definition;delete e.example;
+  }
   const catOpts=LEX_CATEGORIES.map(c=>`<option value="${att(c)}"${e.category===c?' selected':''}>${esc(c)}</option>`).join('');
   v.innerHTML=`<div class="lex-stage">
     <input class="lex-term" id="lxTerm" value="${att(e.term)}" placeholder="Technique name">
-    <div class="lex-cat-row">
-      <select class="lex-cat-sel" id="lxCat">${catOpts}</select>
-    </div>
-    <span class="lex-section-label">What it is</span>
-    <textarea class="lex-field" id="lxDef" placeholder="Define the technique in your own words…">${esc(e.definition||'')}</textarea>
-    <span class="lex-section-label">Example — a passage, sentence, or moment where you've seen it done well</span>
-    <textarea class="lex-field" id="lxEx" placeholder="Paste or write an example…">${esc(e.example||'')}</textarea>
-    <span class="lex-section-label">How I use it — your personal notes on applying this technique</span>
-    <textarea class="lex-field" id="lxNotes" placeholder="Notes on how you want to use this…">${esc(e.notes||'')}</textarea>
-    <div class="lex-actions"><span class="lex-saved" id="lxSaved">${e.definition||e.term?'Saved':'Nothing written yet'}</span></div>
+    <div class="lex-cat-row"><select class="lex-cat-sel" id="lxCat">${catOpts}</select></div>
+    <textarea class="lex-field" id="lxNotes" placeholder="Write anything — definition, examples, how you use it…">${esc(e.notes||'')}</textarea>
+    <div class="lex-actions"><span class="lex-saved" id="lxSaved">${e.notes||e.term?'Saved':'Nothing written yet'}</span></div>
   </div>`;
-  const termEl=$('#lxTerm'),catEl=$('#lxCat'),defEl=$('#lxDef'),exEl=$('#lxEx'),notesEl=$('#lxNotes'),savedEl=$('#lxSaved');
+  const termEl=$('#lxTerm'),catEl=$('#lxCat'),notesEl=$('#lxNotes'),savedEl=$('#lxSaved');
   let timer=null;
-  const persist=()=>{e.term=termEl.value;e.category=catEl.value;e.definition=defEl.value;e.example=exEl.value;e.notes=notesEl.value;savedEl.textContent='Saved';save();renderForgeRail()};
+  const persist=()=>{e.term=termEl.value;e.category=catEl.value;e.notes=notesEl.value;savedEl.textContent='Saved';save();renderForgeRail()};
   const queue=()=>{savedEl.textContent='Saving…';clearTimeout(timer);timer=setTimeout(persist,500)};
   termEl.oninput=queue;catEl.onchange=()=>persist();
-  [defEl,exEl,notesEl].forEach(el=>{el.oninput=queue;el.onblur=()=>{clearTimeout(timer);persist()}});
+  notesEl.oninput=queue;notesEl.onblur=()=>{clearTimeout(timer);persist()};
 }
 
 function renderForgeRail(){
