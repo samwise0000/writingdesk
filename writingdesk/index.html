@@ -1122,9 +1122,24 @@ async function boot(){
 
 /* ---------- chrome ---------- */
 function render(){
-  renderBooks();pickTiers();
   document.body.classList.toggle('forge-mode',tab==='forge');
-  if(tab!=='forge') paintWaterline(); else $('#waterline').innerHTML='';
+
+  // The Forge is a workspace-level area, not a book tab. Clear every
+  // book-specific surface before rendering it so the previous book's
+  // parts, tabs, and selected section can never bleed through.
+  if(tab==='forge'){
+    selectedIdx=-1;
+    $('#waterline').innerHTML='';
+    $('#tools').innerHTML='';
+    $('#spineRail').innerHTML='';
+    $('#view').innerHTML='';
+    renderForgeRail();
+    renderDaily();
+    return;
+  }
+
+  renderBooks();pickTiers();
+  paintWaterline();
   const legend=$('#legend');
   if(legend){
     legend.innerHTML=Object.entries(TIERS).map(([k,v])=>
@@ -1133,7 +1148,7 @@ function render(){
   }
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   renderTools();
-  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg,forge:renderDaily})[tab]();
+  ({spine:renderSpine,cast:renderCast,notes:renderNotes,gloss:renderGloss,bible:renderBible,prog:renderProg})[tab]();
   renderMs()
 }
 function paintWaterline(){
@@ -1188,7 +1203,7 @@ function renderTools(){
   const msBtn=document.getElementById('manuscriptTab');
   if(msBtn) msBtn.onclick=()=>openManuscript();
   const topMs=document.getElementById('topManuscript'); if(topMs) topMs.onclick=()=>openManuscript();
-  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Back to book':'The Forge';topForge.onclick=()=>{if(tab==='forge'){tab=lastBookTab||'spine'}else{lastBookTab=tab;tab='forge';forgeSelectedId=null}query='';render()}};
+  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Back to book':'The Forge';topForge.onclick=()=>{if(tab==='forge'){tab=lastBookTab||'spine'}else{lastBookTab=tab;tab='forge';forgeSelectedId=null;selectedIdx=-1}query='';render()}};
   const menu=document.getElementById('menuBtn'); if(menu) menu.onclick=()=>document.body.classList.toggle('rail-hidden');
 }
 
