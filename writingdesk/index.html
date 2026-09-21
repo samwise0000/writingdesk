@@ -1217,14 +1217,24 @@ function renderTools(){
   const topMs=document.getElementById('topManuscript'); if(topMs) topMs.onclick=()=>openManuscript();
   const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Return to Book':'The Forge';topForge.onclick=()=>{
     if(tab==='forge'){
+      // Return directly to the remembered book workspace. Do not call switchBook(),
+      // because Forge is not a book and must never participate in book-state changes.
       const target=(Number.isInteger(lastBookIndex)&&lastBookIndex>=0&&lastBookIndex<ws.books.length)?lastBookIndex:0;
-      const targetTab=lastBookTab||'spine';
-      switchBook(target);
+      const targetTab=(lastBookTab&&lastBookTab!=='forge')?lastBookTab:'spine';
+      ws.current=target;
+      db=ws.books[target].data;
+      db.sections=(db.sections||[]).map(x=>({text:'',scratch:'',status:(x.text&&x.text.trim())?'drafted':'outline',...x}));
+      normalizeParts(ws.books[target]);
+      db.cast=db.cast||[];db.notes=db.notes||[];db.gloss=db.gloss||[];db.meta=db.meta||{target:130000,log:{}};db.meta.log=db.meta.log||{};
+      if(db.meta.log[today()]===undefined)db.meta.log[today()]=totalWords();
       tab=targetTab;
+      document.body.classList.remove('forge-mode');
+      forgeSelectedId=null;forgeFocusId=null;focusIdx=-1;selectedIdx=Math.max(0,Math.min(selectedIdx,Math.max(0,db.sections.length-1)));
+      query='';filter='all';bibleEditing=false;
       render();
     }else{
       lastBookIndex=ws.current;
-      lastBookTab=tab||'spine';
+      lastBookTab=(tab&&tab!=='forge')?tab:'spine';
       tab='forge';
       forgeSelectedId=null;forgeFocusId=null;selectedIdx=-1;
       query='';
