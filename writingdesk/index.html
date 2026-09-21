@@ -1238,7 +1238,7 @@ function renderTools(){
   const msBtn=document.getElementById('manuscriptTab');
   if(msBtn) msBtn.onclick=()=>openManuscript();
   const topMs=document.getElementById('topManuscript'); if(topMs) topMs.onclick=()=>openManuscript();
-  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'Return to Workspace':'The Forge';topForge.onclick=()=>{
+  const topForge=document.getElementById('topForge'); if(topForge){topForge.textContent=tab==='forge'?'< Return to Book':'The Forge';topForge.onclick=()=>{
     if(tab==='forge'){
       // Return directly to the remembered book workspace. Do not call switchBook(),
       // because Forge is not a book and must never participate in book-state changes.
