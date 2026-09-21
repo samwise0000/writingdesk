@@ -475,6 +475,29 @@
   .footline #storeState{color:var(--soft)}
   .footline button{flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ---- AI writing coach widget ---- */
+  #aiWidget{position:fixed;bottom:26px;right:26px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  #aiToggle{width:42px;height:42px;border-radius:50%;background:var(--lantern);color:#fff;border:0;font-size:18px;cursor:pointer;box-shadow:0 2px 14px color-mix(in srgb,var(--lantern) 45%,transparent);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;line-height:1}
+  #aiToggle:hover{transform:scale(1.1);box-shadow:0 4px 20px color-mix(in srgb,var(--lantern) 55%,transparent)}
+  #aiPanel{width:330px;background:var(--raise);border:1px solid var(--rule);border-radius:8px;box-shadow:0 8px 36px color-mix(in srgb,#000 24%,transparent);display:flex;flex-direction:column;overflow:hidden;transform-origin:bottom right;transition:transform .22s cubic-bezier(.2,.7,.3,1),opacity .18s}
+  #aiPanel.closed{transform:scale(.9) translateY(10px);opacity:0;pointer-events:none;visibility:hidden}
+  #aiPanelHead{display:flex;align-items:center;padding:13px 14px 11px;border-bottom:1px solid var(--rule);flex:0 0 auto;gap:8px}
+  #aiPanelHead strong{font-size:13.5px;font-weight:600;flex:1;color:var(--ink)}
+  #aiPanelHead button{background:none;border:0;color:var(--soft);cursor:pointer;font-size:12px;padding:2px 5px;font-family:var(--face)}
+  #aiPanelHead button:hover{color:var(--ink)}
+  #aiMessages{flex:1 1 auto;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-height:80px;max-height:380px;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--soft) 40%,transparent) transparent}
+  .ai-msg{max-width:90%;font-size:13.5px;line-height:1.6;padding:8px 11px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+  .ai-msg.user{align-self:flex-end;background:color-mix(in srgb,var(--lantern) 13%,transparent);color:var(--ink)}
+  .ai-msg.assistant{align-self:flex-start;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
+  .ai-msg.thinking{align-self:flex-start;color:var(--soft);font-style:italic;font-size:13px;background:none;padding-left:2px}
+  #aiInputRow{flex:0 0 auto;border-top:1px solid var(--rule);display:flex;align-items:flex-end;gap:8px;padding:9px 12px}
+  #aiInput{flex:1;background:none;border:0;border-bottom:1px solid var(--rule);resize:none;font:13.5px/1.5 var(--face);color:var(--ink);padding:3px 0;max-height:76px;min-height:24px;outline:none;overflow-y:auto}
+  #aiInput:focus{border-bottom-color:var(--ink)}
+  #aiInput::placeholder{color:var(--soft);opacity:.7}
+  #aiSend{flex:0 0 auto;background:none;border:0;color:var(--lantern);font:600 13px var(--face);cursor:pointer;padding:3px 2px;line-height:1}
+  #aiSend:hover{color:var(--ink)}
+  #aiSend:disabled{color:var(--soft);cursor:default}
   @media (max-width:640px){
     .wrap{padding:0 20px 140px}
     nav.tabs{gap:18px;overflow-x:auto}
@@ -2330,6 +2353,113 @@ document.addEventListener('click',e=>{
     })();
   }
 });
+/* ---------- AI writing coach ---------- */
+let aiOpen=false, aiMessages=[], aiLoading=false;
+
+function getAiContext(){
+  const book=ws.books&&ws.books[ws.current];
+  const bookTitle=book?.title||'Untitled';
+  const parts=[`Book: "${bookTitle}"`];
+  if(tab==='forge'){
+    if(studioSection==='forge'){
+      const e=forgeList().find(x=>x.id===forgeSelectedId)||forgeList()[0];
+      if(e){parts.push(`Currently: Forge exercise — ${e.theme}`);parts.push(`Prompt: ${e.prompt}`);if(e.response)parts.push(`Response so far: ${e.response.slice(0,500)}`)}
+    }else if(studioSection==='lexicon'){
+      const e=lexiconList().find(x=>x.id===lexiconSelectedId);
+      if(e)parts.push(`Currently: Lexicon — ${e.term} (${e.category})\n${(e.notes||'').slice(0,300)}`);
+    }else if(studioSection==='readingLog'){
+      const e=readingLogList().find(x=>x.id===readingLogSelectedId);
+      if(e)parts.push(`Currently: Reading log — "${e.title}"${e.author?' by '+e.author:''}`);
+    }
+  }else if(tab==='spine'&&selectedIdx>=0&&db.sections&&db.sections[selectedIdx]){
+    const s=db.sections[selectedIdx];
+    parts.push(`Currently: Section "${s.title}"${s.tier?' ('+s.tier+')':''}`);
+    if(s.tense)parts.push(`Voice: ${s.tense}`);
+    if(s.synopsis)parts.push(`Synopsis: ${s.synopsis.slice(0,300)}`);
+    const txt=richPlain(s.text||'').trim();
+    if(txt)parts.push(`Draft excerpt: ${txt.slice(0,500)}`);
+  }else if(tab==='cast'){parts.push('Currently: Characters')}
+  else if(tab==='notes'){parts.push('Currently: Notes')}
+  else if(tab==='bible'){parts.push('Currently: Story bible')}
+  return parts.join('\n');
+}
+
+function renderAiMessages(){
+  const box=document.getElementById('aiMessages');if(!box)return;
+  box.innerHTML=aiMessages.map(m=>`<div class="ai-msg ${m.role}">${esc(m.content)}</div>`).join('');
+  if(aiLoading)box.insertAdjacentHTML('beforeend','<div class="ai-msg thinking">Thinking…</div>');
+  box.scrollTop=box.scrollHeight;
+}
+
+async function aiSend(){
+  const input=document.getElementById('aiInput');
+  const btn=document.getElementById('aiSend');
+  const text=input.value.trim();
+  if(!text||aiLoading)return;
+  aiMessages.push({role:'user',content:text});
+  input.value='';input.style.height='';
+  aiLoading=true;btn.disabled=true;
+  renderAiMessages();
+  try{
+    const context=getAiContext();
+    const resp=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json','x-desk-key':deskKey||''},body:JSON.stringify({messages:aiMessages,context})});
+    if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error||resp.statusText)}
+    const reader=resp.body.getReader();const dec=new TextDecoder();
+    let buf='',content='';
+    aiMessages.push({role:'assistant',content:''});
+    const msgIdx=aiMessages.length-1;
+    aiLoading=false;btn.disabled=false;
+    renderAiMessages();
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        const d=line.slice(6);if(d==='[DONE]')break;
+        try{const{text}=JSON.parse(d);content+=text;aiMessages[msgIdx].content=content;renderAiMessages()}catch{}
+      }
+    }
+  }catch(e){
+    aiLoading=false;btn.disabled=false;
+    aiMessages.push({role:'assistant',content:'Error: '+(e.message||String(e))});
+    renderAiMessages();
+  }
+}
+
+function initAiWidget(){
+  const toggle=document.getElementById('aiToggle');
+  const panel=document.getElementById('aiPanel');
+  const closeBtn=document.getElementById('aiClose');
+  const clearBtn=document.getElementById('aiClear');
+  const sendBtn=document.getElementById('aiSend');
+  const input=document.getElementById('aiInput');
+  if(!toggle)return;
+  panel.classList.add('closed');
+  toggle.onclick=()=>{aiOpen=!aiOpen;panel.classList.toggle('closed',!aiOpen);if(aiOpen){input.focus()}};
+  closeBtn.onclick=()=>{aiOpen=false;panel.classList.add('closed')};
+  clearBtn.onclick=()=>{aiMessages=[];renderAiMessages()};
+  sendBtn.onclick=aiSend;
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend()}});
+  input.oninput=()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,76)+'px'};
+}
+document.addEventListener('DOMContentLoaded',initAiWidget);
 </script>
+
+<div id="aiWidget">
+  <div id="aiPanel">
+    <div id="aiPanelHead">
+      <strong>Writing Coach</strong>
+      <button id="aiClear" type="button">Clear</button>
+      <button id="aiClose" type="button">✕</button>
+    </div>
+    <div id="aiMessages"></div>
+    <div id="aiInputRow">
+      <textarea id="aiInput" rows="1" placeholder="Ask anything about your writing…"></textarea>
+      <button id="aiSend" type="button">Send</button>
+    </div>
+  </div>
+  <button id="aiToggle" type="button" aria-label="Writing coach">✦</button>
+</div>
 </body>
 </html>
