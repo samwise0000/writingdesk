@@ -1127,12 +1127,31 @@ async function boot(){
 }
 
 /* ---------- chrome ---------- */
+function restoreBookRailShell(){
+  const rail=$('#spineRail');
+  if(!rail)return;
+  // Forge temporarily owns the rail, so recreate the normal book rail
+  // skeleton before any book renderer tries to address #spineList.
+  rail.innerHTML=`<nav class="tabs">
+      <button class="tab on" data-t="spine">Spine</button>
+      <button class="tab" data-t="cast">Characters</button>
+      <button class="tab" data-t="notes">Notes</button>
+      <button class="tab" data-t="gloss">Glossary</button>
+      <button class="tab" data-t="bible">Bible</button>
+      <button class="tab" data-t="prog">Progress</button>
+      <button class="tab manuscript-tab" id="manuscriptTab" type="button">Manuscript</button>
+    </nav><div id="spineList"></div>`;
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(b.dataset.t)lastBookTab=b.dataset.t;tab=b.dataset.t;query='';render()});
+  const msBtn=document.getElementById('manuscriptTab');
+  if(msBtn)msBtn.onclick=()=>openManuscript();
+}
+
 function render(){
   document.body.classList.toggle('forge-mode',tab==='forge');
 
-  // The Forge is a workspace-level area, not a book tab. Clear every
-  // book-specific surface before rendering it so the previous book's
-  // parts, tabs, and selected section can never bleed through.
+  // The Forge is a workspace-level area, not a book tab. Clear the
+  // book-specific contents, but remember to rebuild the book rail shell
+  // when leaving Forge so #spineList and the normal tabs exist again.
   if(tab==='forge'){
     selectedIdx=-1;
     const wl=$('#waterline'); if(wl) wl.innerHTML='';
@@ -1147,6 +1166,9 @@ function render(){
     renderDaily();
     return;
   }
+  // If Forge previously replaced the rail, restore its normal DOM before
+  // rendering the book. This is essential for returning without stale Forge UI.
+  if(!document.getElementById('spineList'))restoreBookRailShell();
   const bookGroup=document.querySelector('.book-title-group'); if(bookGroup) bookGroup.style.display='';
   const ms=document.querySelector('.top-ms'); if(ms) ms.style.display='';
 
