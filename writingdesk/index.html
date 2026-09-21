@@ -1129,14 +1129,20 @@ function render(){
   // parts, tabs, and selected section can never bleed through.
   if(tab==='forge'){
     selectedIdx=-1;
-    $('#waterline').innerHTML='';
-    $('#tools').innerHTML='';
-    $('#spineRail').innerHTML='';
-    $('#view').innerHTML='';
+    const wl=$('#waterline'); if(wl) wl.innerHTML='';
+    const tools=$('#tools'); if(tools) tools.innerHTML='';
+    const rail=$('#spineRail'); if(rail) rail.innerHTML='';
+    const view=$('#view'); if(view) view.innerHTML='';
+    const crumb=$('#crumb'); if(crumb) crumb.textContent='';
+    const topWords=$('#topWords'); if(topWords) topWords.textContent='';
+    const bookGroup=document.querySelector('.book-title-group'); if(bookGroup) bookGroup.style.display='none';
+    const ms=document.querySelector('.top-ms'); if(ms) ms.style.display='none';
     renderForgeRail();
     renderDaily();
     return;
   }
+  const bookGroup=document.querySelector('.book-title-group'); if(bookGroup) bookGroup.style.display='';
+  const ms=document.querySelector('.top-ms'); if(ms) ms.style.display='';
 
   renderBooks();pickTiers();
   paintWaterline();
@@ -1484,6 +1490,13 @@ const DAILY_PROMPTS={
 'Heated Dialogue':'Write a heated argument in which neither character says exactly what they mean. Keep the dialogue fast and specific. Give each character one thing they desperately want the other person to understand.'
 };
 function dailyToday(){return today()}
+function dailyDayIndex(date=dailyToday()){
+  const m=String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return 0;
+  const d=new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3])));
+  const start=new Date(Date.UTC(2020,0,1));
+  return Math.floor((d-start)/86400000);
+}
 function formatDailyDate(v){try{return new Date(v+'T00:00:00').toLocaleDateString([], {weekday:'short',month:'short',day:'numeric',year:'numeric'})}catch(e){return v}}
 function forgeEntriesForDate(date){return forgeList().filter(x=>x.date===date).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}
 function normalizeForgeNumbers(){
