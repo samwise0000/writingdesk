@@ -1807,10 +1807,11 @@ function renderForgeRail(){
   } else if(studioSection==='lexicon'){
     const list=lexiconList().slice().sort((a,b)=>String(a.category||'').localeCompare(String(b.category||''))||String(a.term||'').localeCompare(String(b.term||'')));
     const row=x=>`<div class="lex-rail-row"><button type="button" data-lx-id="${att(x.id)}" class="${x.id===lexiconSelectedId?'on':''}"><span class="lex-rail-cat">${esc(x.category||'General')}</span><span class="lex-rail-term">${esc(x.term||'Untitled')}</span></button><button type="button" class="lex-rail-delete" data-lx-delete="${att(x.id)}" title="Delete" aria-label="Delete">×</button></div>`;
-    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Lexicon</h2><div class="forge-rail-sub">Craft techniques & tools</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="lxRailNew">+ Add technique</button>`;
+    rail.innerHTML=nav+`<div class="forge-rail-head"><h2 class="forge-rail-title">Lexicon</h2><div class="forge-rail-sub">Craft techniques & tools</div></div>${list.length?list.map(row).join(''):''}<button type="button" class="btn forge-rail-add" id="lxRailNew">+ Add technique</button><button type="button" class="btn forge-rail-add" id="lxRailImport" style="margin-top:6px;color:var(--soft)">↓ Import from book</button>`;
     rail.querySelectorAll('[data-lx-id]').forEach(b=>b.onclick=()=>{lexiconSelectedId=b.dataset.lxId;renderLexiconMain();renderForgeRail()});
     rail.querySelectorAll('[data-lx-delete]').forEach(b=>b.onclick=()=>deleteLexiconEntry(b.dataset.lxDelete));
     const add=rail.querySelector('#lxRailNew');if(add)add.onclick=()=>newLexiconEntry();
+    const imp=rail.querySelector('#lxRailImport');if(imp)imp.onclick=()=>importLexiconFromBook();
   } else {
     const all=forgeList().slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
     const todayEntries=all.filter(x=>x.date===dailyToday());
