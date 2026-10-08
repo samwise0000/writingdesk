@@ -1834,10 +1834,10 @@ function renderDaily(){
   swReset();
   normalizeForgeNumbers();
   const date=dailyToday();let entries=forgeEntriesForDate(date);if(!entries.length){ensureDailyEntry(date);entries=forgeEntriesForDate(date)}
-  let e=entries.find(x=>x.id===forgeSelectedId)||entries[entries.length-1];forgeSelectedId=e.id;
+  let e=forgeList().find(x=>x.id===forgeSelectedId)||entries[entries.length-1];forgeSelectedId=e.id;
   const initWc=e.response?e.response.trim().split(/\s+/).filter(Boolean).length:0;
   v.innerHTML=`<div class="forge-stage">
-    <div class="forge-exercise-kicker">${esc(formatDailyDate(date))}</div>
+    <div class="forge-exercise-kicker">${esc(formatDailyDate(e.date))}</div>
     <div class="forge-exercise-head"><h2 class="forge-exercise-theme">${esc(e.theme)}</h2><button class="btn forge-focus-btn" id="forgeFocus">⛶ Focus</button></div>
     <p class="forge-exercise-prompt">${esc(e.prompt)}</p>
     <textarea id="dailyResponse" class="forge-response" placeholder="Write here…">${esc(e.response||'')}</textarea>
