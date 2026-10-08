@@ -540,6 +540,7 @@
     <main id="view"></main>
     <div class="footline">
       <span id="storeState">saving</span>
+      <button class="quiet" id="syncBtn">Save</button>
       <button class="quiet" id="storeTest">Check sync</button>
       <button class="quiet" id="saveStateBtn">Save state</button>
       <button class="quiet" id="loadStateBtn">Load state</button>
@@ -1044,6 +1045,21 @@ function openStates(){
 }
 $('#closeStates').onclick=()=>$('#dlgStates').close();
 $('#saveStateBtn').onclick=()=>{openStates();setTimeout(()=>$('#stateName').focus(),0)};
+$('#syncBtn').onclick=async()=>{
+  const el=document.getElementById('storeState');
+  if(!DB){ say('Server sync is not available'); return }
+  flush();
+  const btn=$('#syncBtn'); const prevText=btn.textContent;
+  btn.disabled=true; btn.textContent='Saving…';
+  try{
+    const ok=await dbSave();
+    if(el){ el.textContent=ok?('synced '+new Date().toTimeString().slice(0,8)):'server sync failed'; el.style.color=ok?'#9BC49B':'#E9A0A0' }
+    say(ok?'Saved to server':'Save failed');
+  }catch(e){
+    if(el){ el.textContent='server sync failed'; el.style.color='#E9A0A0' }
+    say('Save failed — '+(e&&e.message||e));
+  }finally{ btn.disabled=false; btn.textContent=prevText }
+};
 $('#loadStateBtn').onclick=openStates;
 $('#doSaveState').onclick=async()=>{
   const el=$('#stateName');
@@ -1090,7 +1106,7 @@ $('#stateList').addEventListener('click',async e=>{
 function stamp(){
   const el=document.getElementById('storeState');
   if(el){
-    el.textContent = DB ? 'syncing to server' : ('local only — '+dbNote);
+    el.textContent = DB ? 'local autosave — click Save to sync' : ('local only — '+dbNote);
     el.style.color = DB ? 'var(--muted)' : '#E9A0A0';
   }
 }
@@ -1153,14 +1169,11 @@ async function save(){
   dirty=true;
   ws.books[ws.current].data=db;
   migrateForge();
-  lsSet(JSON.stringify(ws));                       // this device, immediately
+  lsSet(JSON.stringify(ws));                       // this device, immediately — server sync is manual (Save button)
   const el=document.getElementById('storeState');
-  if(el){ el.textContent='saved '+new Date().toTimeString().slice(0,8)+(DB?'':' (this browser)');
+  if(el){ el.textContent=(DB?'saved locally '+new Date().toTimeString().slice(0,8)+' — click Save to sync':'saved '+new Date().toTimeString().slice(0,8)+' (this browser)');
           el.style.color='#9BC49B' }
   say('Saved');
-  if(DB){ dbSave().then(ok=>{                      // server, best effort
-    if(!ok&&el){ el.textContent='saved on this device — server sync failed'; el.style.color='#E9A0A0' }
-  }) }
 }
 function flush(){
   try{
@@ -1177,8 +1190,7 @@ function flush(){
     const be=document.getElementById('bibleEdit');
     if(be) db.bible=be.value;
     ws.books[ws.current].data=db;
-    lsSet(JSON.stringify(ws));
-    if(DB) dbSave();
+    lsSet(JSON.stringify(ws));                      // local only — server sync is manual (Save button)
   }catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
@@ -1205,8 +1217,8 @@ async function boot(){
 
   let remote=null;
   try{ remote=await dbLoad() }catch(e){ remote=null }
-  if(!remote){ diag('boot: server empty — uploading what you have'); dbSave(); return }
-  if(dirty){ diag('boot: you were typing — keeping yours, uploading'); dbSave(); return }
+  if(!remote){ diag('boot: server empty — click Save to upload'); return }
+  if(dirty){ diag('boot: you were typing — keeping yours (click Save to sync)'); return }
 
   const words = w => (w&&w.books)? w.books.reduce((n,b)=>n+((b.data&&b.data.sections)||[]).reduce(
       (m,x)=>m+((x.text||'').trim()?x.text.trim().split(/\s+/).length:0),0),0) : -1;
@@ -1214,8 +1226,7 @@ async function boot(){
     diag('boot: taking the server copy');
     adopt(remote); ensureBooks(); lsSet(JSON.stringify(ws)); say('Loaded from server');
   }else{
-    diag('boot: this browser is ahead — uploading');
-    dbSave();
+    diag('boot: this browser is ahead — click Save to sync');
   }
 }
 
