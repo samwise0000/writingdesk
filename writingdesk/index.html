@@ -2197,7 +2197,7 @@ function setOut(mode){
   const map={
     csv:['Spine as CSV','Every section with its synopsis and draft text. Paste it back to me with your changes.',toCSV()],
     md:['Manuscript as markdown','Only what you have written, in book order, with part dividers.',msText()],
-    json:['Everything as JSON',`Full backup of all ${ws.books.length} book${ws.books.length>1?'s':''} — spine, characters, notes, glossary, bible. This is your only backup; download it after real work.`,JSON.stringify({books:ws.books.map((b,i)=>i===ws.current?{title:b.title,data:db}:b),current:ws.current},null,1)],
+    json:['Everything as JSON',`Full backup of all ${ws.books.length} book${ws.books.length>1?'s':''} — spine, characters, notes, glossary, bible, forge exercises, reading log, and lexicon. This is your only backup; download it after real work.`,JSON.stringify({books:ws.books.map((b,i)=>i===ws.current?{title:b.title,data:db}:b),current:ws.current,forgeExercises:ws.forgeExercises||[],readingLog:ws.readingLog||[],lexicon:ws.lexicon||[]},null,1)],
     bible:['Story bible as markdown','The whole document, for archiving or reading elsewhere.',db.bible||'']
   }[mode];
   $('#outTitle').textContent=map[0];
@@ -2221,7 +2221,14 @@ $('#doImport').onclick=()=>{
   try{
     if(txt.startsWith('{')){
       const o=JSON.parse(txt);
-      if(Array.isArray(o.books)){ws=o;ws.current=Math.min(ws.current||0,ws.books.length-1);db=ws.books[ws.current].data;say(`Restored ${ws.books.length} books`)}
+      if(Array.isArray(o.books)){
+        const prevForge=ws.forgeExercises,prevReading=ws.readingLog,prevLexicon=ws.lexicon;
+        ws=o;ws.current=Math.min(ws.current||0,ws.books.length-1);
+        ws.forgeExercises=Array.isArray(o.forgeExercises)?o.forgeExercises:(prevForge||[]);
+        ws.readingLog=Array.isArray(o.readingLog)?o.readingLog:(prevReading||[]);
+        ws.lexicon=Array.isArray(o.lexicon)?o.lexicon:(prevLexicon||[]);
+        db=ws.books[ws.current].data;say(`Restored ${ws.books.length} books`)
+      }
       else if(o.sections){db=o;db.meta=db.meta||{target:130000,log:{}};ws.books[ws.current].data=db;say('Book restored')}
       else throw 0;
     }
